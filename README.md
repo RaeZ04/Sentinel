@@ -31,9 +31,11 @@ Para ver las contraseñas guardadas en una clase, seleccione en la barra superio
 >Presione despues de seleccionar una clase y saldran en la caja inferior las contraseñas guardadas en esa cuenta
 <img width="160" alt="mostrarContraseñas" src="https://github.com/RaeZ04/Sentinel/assets/102594905/0d8c8328-b971-4d0e-809f-d443966ae041">
 
+
 Por ultimo en esta versión, el boton de actualizar contraseñas. Se encuentra entre mostrar contraseñas y crear clase, una vez clickado sale una ventana como esta:
 
 <img width="358" alt="actualizarMenu" src="https://github.com/RaeZ04/Sentinel/assets/102594905/577265f2-e9fc-466c-8bbd-61bae2ef9888">
+
 
 En el primer desplegable elige la clase de la que quieres actualizar la cuenta, y en el segundo la cuenta de la cual quieres actualizar la contraseña. Rellene los campos de usuario y contraseña para actualizar.
 
