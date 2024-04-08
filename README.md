@@ -35,7 +35,7 @@ Por ultimo en esta versión, el boton de actualizar contraseñas. Se encuentra e
 
 <img width="358" alt="actualizarMenu" src="https://github.com/RaeZ04/Sentinel/assets/102594905/577265f2-e9fc-466c-8bbd-61bae2ef9888">
 
-En el primer desplegable elige la clase de la que quieres actualizar la cuenta, y en el segundo la cuenta de la cual quieres actualizar la contraseña.
+En el primer desplegable elige la clase de la que quieres actualizar la cuenta, y en el segundo la cuenta de la cual quieres actualizar la contraseña. Rellene los campos de usuario y contraseña para actualizar.
 
 ### SIGUIENTES VERSIONES
 Para las siguientes versiones tenemos pensado mejorar el programa en diferentes vias, como por ejemplo:
@@ -44,3 +44,4 @@ Para las siguientes versiones tenemos pensado mejorar el programa en diferentes 
 - [ ] eliminar clases
 - [ ] eliminar cuentas
 - [ ] elegir la contraseña de usuario
+- [ ] port a python para mayor portabilidad
