@@ -48,3 +48,4 @@ Para las siguientes versiones tenemos pensado mejorar el programa en diferentes 
 - [ ] elegir la contraseña de usuario
 - [ ] port a python para mayor portabilidad
 - [ ] agregar nombre de aplicacion dentro de la misma en forma de logotipo
+- [ ] observaciones adicionales para las cuentas
