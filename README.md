@@ -49,3 +49,4 @@ Para las siguientes versiones tenemos pensado mejorar el programa en diferentes 
 - [ ] port a python para mayor portabilidad
 - [ ] agregar nombre de aplicacion dentro de la misma en forma de logotipo
 - [ ] observaciones adicionales para las cuentas
+- [ ] comprobacion de contrasenas repetidas y un boton que te muestre las repetidas
