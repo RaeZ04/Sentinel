@@ -10,14 +10,12 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import java.io.IOException;
 
-import static javafx.application.Application.launch;
-
 public class AppInitializer extends Application {
 
     private double xOffset = 0;
     private double yOffset = 0;
 
-    public void start(Stage stage) {
+    public void start(@SuppressWarnings("exports") Stage stage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("Inicio.fxml"));
             Parent root = fxmlLoader.load();
@@ -49,7 +47,7 @@ public class AppInitializer extends Application {
         }
     }
 
-    public void makeWindowDraggable(Parent root, Stage stage) {
+    public void makeWindowDraggable(@SuppressWarnings("exports") Parent root, @SuppressWarnings("exports") Stage stage) {
         // Cuando se presiona el ratón, almacenamos la posición actual del ratón
         root.setOnMousePressed(event -> {
             xOffset = event.getSceneX();

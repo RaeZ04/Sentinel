@@ -10,9 +10,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-//import javafx.scene.Cursor;
 import javafx.scene.control.*;
-//import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -25,15 +23,11 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
-import javafx.util.Pair;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 public class menu1Controller {
 
@@ -624,8 +618,7 @@ public class menu1Controller {
         }
     }
 
-    public void actualizarContraseña(ComboBox<String> primerDropdown, ComboBox<String> segundoDropdown,
-                                     TextField nuevoUsuario, TextField nuevaContraseña) {
+    public void actualizarContraseña(ComboBox<String> primerDropdown, ComboBox<String> segundoDropdown, @SuppressWarnings("exports") TextField nuevoUsuario, @SuppressWarnings("exports") TextField nuevaContraseña) {
         String apartadoSeleccionado = primerDropdown.getValue();
         String cuentaSeleccionada = segundoDropdown.getValue();
         String nuevoUsuarioTexto = nuevoUsuario.getText();
