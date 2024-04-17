@@ -51,3 +51,4 @@ Para las siguientes versiones tenemos pensado mejorar el programa en diferentes 
 - [ ] observaciones adicionales para las cuentas
 - [ ] comprobacion de contrasenas repetidas y un boton que te muestre las repetidas
 - [ ] cambiar el metodo de busqueda para que no haya fallos en cuenta y clase
+- [ ] cambiar color de interfaz y opcion de botones macOS
