@@ -511,6 +511,14 @@ public class menu1Controller {
         }
     };
 
+
+
+
+
+
+
+
+
     ///////////////////////////////// METODOS DE ENCRIPTADO Y
     ///////////////////////////////// DESENCRIPTADO//////////////////////////////////////////////
     public static void encryptFile(String inputFile, String outputFile) throws Exception {
@@ -540,6 +548,13 @@ public class menu1Controller {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+
+
+
+
+
     // Guardar Cuentas en el archivo
     public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
             throws IOException {
@@ -560,8 +575,7 @@ public class menu1Controller {
                     fileContent.append(line).append(System.lineSeparator());// añade la linea al contenido del archivo
                     if (line.equals(dropdownVar.getValue().toUpperCase())) {// si la linea es igual al nombre del
                         // dropdown
-                        fileContent.append(usernameField).append(" : ").append(passwordField)
-                                .append(System.lineSeparator());// añade el usuario y la contraseña
+                        fileContent.append("-").append(usernameField).append(" : ").append(passwordField).append(System.lineSeparator());// añade el usuario y la contraseña
                     }
                 }
                 br.close();
@@ -642,7 +656,7 @@ public class menu1Controller {
 
                 if (dentroDelApartadoCorrecto && line.equals(cuentaSeleccionada)) {
                     // Reemplazar la línea con los nuevos valores
-                    bw.write(nuevaContraseñaTexto + " : " + nuevoUsuarioTexto);
+                    bw.write("-" + nuevaContraseñaTexto + " : " + nuevoUsuarioTexto);
                     bw.newLine();
                 } else {
                     bw.write(line);
@@ -668,18 +682,15 @@ public class menu1Controller {
 
         scrollpane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             lastY = event.getY();
-            scrollpane.setCursor(Cursor.CLOSED_HAND); // Cambiar el cursor a una mano cerrada cuando se presiona el
-            // ratón
+            scrollpane.setCursor(Cursor.CLOSED_HAND); // Cambiar el cursor a una mano cerrada cuando se presiona el ratón
         });
         scrollpane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
             double deltaY = lastY - event.getY();
             lastY = event.getY();
-            scrollpane.setVvalue(
-                    scrollpane.getVvalue() + 2.75 * deltaY / scrollpane.getContent().getBoundsInLocal().getHeight());
+            scrollpane.setVvalue(scrollpane.getVvalue() + 2.75 * deltaY / scrollpane.getContent().getBoundsInLocal().getHeight());
         });
         scrollpane.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            scrollpane.setCursor(Cursor.DEFAULT); // Cambiar el cursor de vuelta al predeterminado cuando se suelta el
-            // ratón
+            scrollpane.setCursor(Cursor.DEFAULT); // Cambiar el cursor de vuelta al predeterminado cuando se suelta el ratón
         });
 
         String opcionMostrar = dropdownString.getValue();
@@ -696,6 +707,7 @@ public class menu1Controller {
             vbox.setPadding(new Insets(0, 70, 10, 70)); // Agregar padding
 
             while ((line = br.readLine()) != null) {
+                line = line.replaceFirst("^- ", ""); // Elimina el guion inicial
 
                 if (encontrado) {
                     if (line.equals(line.toUpperCase())) {
