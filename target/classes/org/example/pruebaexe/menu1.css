@@ -73,3 +73,10 @@
     -fx-border-color: white;
     -fx-border-width: 2px;
 }
+
+#barraBusqueda{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #ffffff transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: #3b4a6b;
+}
