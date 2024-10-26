@@ -50,3 +50,4 @@ Para las siguientes versiones tenemos pensado mejorar el programa en diferentes 
 - [ ] crear extension de navegador que sirva de la misma manera que la aplicacion de escritorio
 - [ ] comprobacion de contrasenas repetidas y un boton que te muestre las repetidas
 - [ ] cambiar el metodo de busqueda para que no haya fallos en cuenta y clase
+- [ ] cambiar metodo de inicio de sesion
