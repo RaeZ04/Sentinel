@@ -1,0 +1,41 @@
+#base{
+
+    -fx-background-radius: 15;
+    -fx-background-color: #162031;
+
+
+
+}
+
+#close{
+    -fx-background-color: #162031;
+    -fx-background-radius: 0 9 0 0;
+}
+
+#close:hover {
+    -fx-background-color: #dc4c4c;
+}
+
+#minimize{
+    -fx-background-color: #162031;
+}
+
+#minimize:hover {
+    -fx-background-color: #34445e;
+}
+
+#base2{
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+    -fx-background-color: #162031;
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+}
+
+#passwordField {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #ffffff transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: white;
+    -fx-caret-color: white;
+}

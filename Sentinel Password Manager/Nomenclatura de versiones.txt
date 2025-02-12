@@ -1,4 +1,0 @@
-NOMENCLATURA DE LAS VERSIONES DE SENTINEL
-
-V1.0, V2.0 etc... cuando hay cambios grandes o funciones nuevas implementadas
-V1.1, V2.1 etc... cuando hay arreglo de errores y ya esta implementado el parche
