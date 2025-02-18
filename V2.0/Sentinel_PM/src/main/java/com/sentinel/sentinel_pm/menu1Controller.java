@@ -63,8 +63,8 @@ public class menu1Controller {
     //////////////////////////////////////////// RUTAS ARCHIVOS DE
     //////////////////////////////////////////// ENCRIPTADO////////////////////////////////////////
     String nombreUsuarioWin = System.getProperty("user.name");
-    String ruta = "C:\\Users\\" + nombreUsuarioWin + "\\Documents\\logsPass\\acc.gpg";
-    String rutaTemp = "C:\\Users\\" + nombreUsuarioWin + "\\Documents\\logsPass\\acc.txt";
+    String ruta = "C:\\Users\\" + nombreUsuarioWin + "\\Documents\\logsPass\\acc.gpg"; //cambiar por variable
+    String rutaTemp = "C:\\Users\\" + nombreUsuarioWin + "\\Documents\\logsPass\\acc.txt"; //cambiar por la variable de arriba
     private static String key = "Rammusmaricones.";
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

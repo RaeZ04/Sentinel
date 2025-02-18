@@ -42,9 +42,10 @@ public class InicioController {
     private AppInitializer appInitializer = new AppInitializer();
 
     String nombreUsuarioWin = System.getProperty("user.name");
-    String ruta ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.gpg";
-    String rutaTemp ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.txt";
+    String ruta ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.gpg"; //cambiar por clase que contenga esto y no repetir codigo
+    String rutaTemp ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.txt"; //cambiar por clase que contenga esto y no repetir codigo
     private static String key = "Rammusmaricones.";
+
 
     @FXML
     protected void initialize() {
@@ -53,28 +54,34 @@ public class InicioController {
         //cambiar metodo, si es la primera vez que se inicia la app, se muestra una vista en la que el usuario puede definir la contrasena usada y el directorio donde se guardara el archivo
 
         // crear o verificar si existe carpeta
-        String username = System.getProperty("user.name");
-        File directorio = new File("C:\\Users\\" + username + "\\Documents\\logsPass");
-        if (!directorio.exists()) {
-            //si el directorio no existe tiene que redirigir a la vista de bienvenida
-            directorio.mkdirs();
-        }
-
-        File archivo = new File(directorio, "acc.gpg");
-        if (!archivo.exists()) {
-            try {
-                archivo.createNewFile();
-            } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al crear el archivo");
-                alert.showAndWait();
-            }
-        }
+//        String username = System.getProperty("user.name");
+//        File directorio = new File("C:\\Users\\" + username + "\\Documents\\logsPass");
+//
+//        if (!directorio.exists()) {
+//            try {
+//                System.out.print("directorio no existe try");
+//
+//            }catch (Exception e){
+//                System.out.println(e);
+//                System.out.println("Error al crear el directorio");
+//            }
+//        }
+//
+//        File archivo = new File(directorio, "acc.gpg");
+//        if (!archivo.exists()) {
+//            try {
+//                //archivo.createNewFile();
+//                //appInitializer.changeScene(primaryStage, "Configuracion.fxml");
+//                System.out.print("archivo no existe try");
+//
+//            } catch (Exception e) {
+//                System.out.println("Error al crear el archivo");
+//            }
+//        }
 
         // Desencriptar el archivo
         try {
-            decryptFile(ruta, rutaTemp);
+            //decryptFile(ruta, rutaTemp);
         } catch (Exception ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");

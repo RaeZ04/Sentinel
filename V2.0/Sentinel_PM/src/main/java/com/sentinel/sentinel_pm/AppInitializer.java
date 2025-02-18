@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.io.File;
 import java.io.IOException;
 
 public class AppInitializer extends Application {
@@ -18,7 +19,18 @@ public class AppInitializer extends Application {
 
     public void start(@SuppressWarnings("exports") Stage stage) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+            //comprobacion de directorio
+            String username = System.getProperty("user.name");
+            File directorio = new File("C:\\Users\\" + username + "\\Documents\\logsPass");
+
+            FXMLLoader fxmlLoader;
+
+            if (directorio.exists()) {
+                 fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+            }else{
+                fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
+            }
+
             Parent root = fxmlLoader.load();
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT);
