@@ -5,6 +5,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -37,7 +38,34 @@ public class ConfigurationController {
     @FXML
     private void initialize() {
 
-        botonBuscarCarpeta.setOnAction(event -> obtenerPasswd());
+        if (PasswdTextBox != null && rutaArchivoTextBox != null){
+            //primero crear carpeta
+            //guardar contrasena y ruta
+
+            //coger ruta
+            File rutaRecogida = new File(rutaArchivoTextBox.getText());
+
+            //comprobar si existe y si no crearla
+            if (rutaRecogida.exists()){
+                System.out.println("la ruta existe");
+
+                //recoger passwd y almacenar junto a la ruta
+                String passwdRecogida = PasswdTextBox.getText();
+
+
+
+
+            }else{
+                System.out.println("la ruta no existe creando...");
+                rutaRecogida.mkdirs();
+            }
+
+        }else{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("No deje ningun campo en blanco");
+            alert.showAndWait();
+        }
 
 
 
