@@ -39,3 +39,7 @@
     -fx-text-fill: white;
     -fx-caret-color: white;
 }
+
+#textAreaRuta{
+    -fx-text-fill: black;
+}

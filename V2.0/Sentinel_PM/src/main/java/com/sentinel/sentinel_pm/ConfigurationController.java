@@ -9,8 +9,8 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -33,6 +33,9 @@ public class ConfigurationController {
     private TextField rutaArchivoTextBox;
 
     @FXML
+    private Button botonGuardar;
+
+    @FXML
     private Button botonBuscarCarpeta;
 
     //para cambiar de escena
@@ -41,59 +44,56 @@ public class ConfigurationController {
     @FXML
     private void initialize() {
 
-        if (PasswdTextBox != null && rutaArchivoTextBox != null){
-            //primero crear carpeta
-            //guardar contrasena y ruta
+        //variable para salir del bucle y comprobar si esta creado
+        File jsonFile = new File("test.json");
 
-            //coger ruta
-            File rutaRecogida = new File(rutaArchivoTextBox.getText());
+        botonGuardar.setOnAction(event -> {
+            if (PasswdTextBox != null && rutaArchivoTextBox != null){
+                //primero crear carpeta
+                //guardar contrasena y ruta
 
-            //comprobar si existe y si no crearla
-            if (rutaRecogida.exists()){
-                System.out.println("la ruta existe");
+                //coger ruta
+                File rutaRecogida = new File(rutaArchivoTextBox.getText());
 
-                //recoger passwd y almacenar junto a la ruta
-                String passwdRecogida = PasswdTextBox.getText();
-                String rutaGuardar = rutaArchivoTextBox.getText();
+                while(!rutaRecogida.exists() && jsonFile.exists()){
+                    //comprobar si existe y si no crearla
+                    if (rutaRecogida.exists()){
+                        System.out.println("la ruta existe");
 
-                passRuta passRuta = new passRuta(passwdRecogida, rutaGuardar);
+                        //recoger passwd y almacenar junto a la ruta
+                        String passwdRecogida = PasswdTextBox.getText();
+                        String rutaGuardar = rutaArchivoTextBox.getText();
 
-                ObjectMapper objectMapper = new ObjectMapper();
-                try{
-                    objectMapper.writeValue(new File("test.json", passRuta));
-                }catch (IOException e){
-                    System.out.println("catch de controller");
+                        passRuta passRuta = new passRuta(passwdRecogida, rutaGuardar);
+
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        try{
+                            objectMapper.writeValue(new File(String.valueOf(jsonFile)), passRuta);
+
+                            if (jsonFile.exists()){
+                                System.out.println("json creado");
+                            }else{
+                                System.out.println("json no creado");
+                            }
+
+                            System.out.println("json creado");
+                        }catch (IOException e){
+                            System.out.println("catch de controller");
+                        }
+
+                    }else{
+                        System.out.println("la ruta no existe creando...");
+                        rutaRecogida.mkdirs();
+                    }
                 }
 
-
-
-
             }else{
-                System.out.println("la ruta no existe creando...");
-                rutaRecogida.mkdirs();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("No deje ningun campo en blanco");
+                alert.showAndWait();
             }
-
-        }else{
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("No deje ningun campo en blanco");
-            alert.showAndWait();
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        });
 
         /////////////////////////////////////////////////////////////////////// BARRA DE
         /////////////////////////////////////////////////////////////////////// ARRIBA////////////////////////
@@ -152,7 +152,5 @@ public class ConfigurationController {
         String nuevaRuta = rutaArchivoTextBox.getText();
         System.out.println(nuevaRuta);
     }
-
-
 
 }
