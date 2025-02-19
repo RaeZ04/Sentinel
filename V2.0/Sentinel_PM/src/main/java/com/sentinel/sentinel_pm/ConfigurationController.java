@@ -1,5 +1,7 @@
 package com.sentinel.sentinel_pm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sentinel.sentinel_pm.entidadesJson.passRuta;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -14,6 +16,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ConfigurationController {
 
@@ -51,6 +54,16 @@ public class ConfigurationController {
 
                 //recoger passwd y almacenar junto a la ruta
                 String passwdRecogida = PasswdTextBox.getText();
+                String rutaGuardar = rutaArchivoTextBox.getText();
+
+                passRuta passRuta = new passRuta(passwdRecogida, rutaGuardar);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                try{
+                    objectMapper.writeValue(new File("test.json", passRuta));
+                }catch (IOException e){
+                    System.out.println("catch de controller");
+                }
 
 
 
