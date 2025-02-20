@@ -27,7 +27,7 @@ public class ConfigurationController {
     private Button minimizeButton;
 
     @FXML
-    private TextField PasswdTextBox;
+    private static TextField PasswdTextBox;
 
     @FXML
     private TextField rutaArchivoTextBox;
@@ -40,6 +40,9 @@ public class ConfigurationController {
 
     //para cambiar de escena
     private AppInitializer appInitializer = new AppInitializer();
+
+    //passwd para pasar de clave
+    public static String passwdKey = PasswdTextBox.getText();
 
     @FXML
     private void initialize() {

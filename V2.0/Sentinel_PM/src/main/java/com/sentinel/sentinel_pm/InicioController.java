@@ -44,7 +44,7 @@ public class InicioController {
     String nombreUsuarioWin = System.getProperty("user.name");
     String ruta ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.gpg"; //cambiar por clase que contenga esto y no repetir codigo
     String rutaTemp ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.txt"; //cambiar por clase que contenga esto y no repetir codigo
-    private static String key = "Rammusmaricones.";
+    public static String key = "Rammusmaricones.";
 
 
     @FXML
@@ -155,18 +155,21 @@ public class InicioController {
     /////////////////////////////////////////////////////////////////////// CIFRADO
     /////////////////////////////////////////////////////////////////////// Y
     /////////////////////////////////////////////////////////////////////// DESCIFRADO////////////
-    public static void decryptFile(String inputFile, String outputFile) throws Exception {
-        byte[] inputBytes = Files.readAllBytes(Paths.get(inputFile));
-        byte[] outputBytes = decrypt(inputBytes, key);
-        Files.write(Paths.get(outputFile), outputBytes);
-    }
+    //public static void decryptFile(String inputFile, String outputFile) throws Exception {
+    //    byte[] inputBytes = Files.readAllBytes(Paths.get(inputFile));
+    //    byte[] outputBytes = decrypt(inputBytes, key);
+    //    Files.write(Paths.get(outputFile), outputBytes);
+    //}
 
-    public static byte[] decrypt(byte[] data, String key) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-        return cipher.doFinal(data);
-    }
+    //public static byte[] decrypt(byte[] data, String key) throws Exception {
+    //    Cipher cipher = Cipher.getInstance("AES");
+    //    SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(), "AES");
+    //    cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+    //    return cipher.doFinal(data);
+    //}
+
+
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void iniciarSesion() {
