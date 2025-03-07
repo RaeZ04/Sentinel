@@ -545,16 +545,56 @@ public class menu1Controller {
 
     // metodo para guardar items en archivo
     private void guardarItemEnArchivo(String item) {
-        String filePath = rutaTemp;
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write(item);
-            writer.newLine();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al guardar el item");
-            alert.showAndWait();
-        }
+          String filePath = rutaTemp;
+          File file = new File(filePath);
+          ObjectMapper objectMapper = new ObjectMapper();
+          JsonNode rootNode;
+
+          try {
+                // Leer el archivo JSON
+                if (file.exists()) {
+                      rootNode = objectMapper.readTree(file);
+                } else {
+                      rootNode = objectMapper.createObjectNode();
+                }
+
+                // Obtener el nodo de cuentas
+                ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+
+                // Crear un nuevo nodo de cuenta
+                ObjectNode nuevaCuenta = objectMapper.createObjectNode();
+                nuevaCuenta.put(item, "valor"); // Reemplaza "valor" con el valor que desees
+
+                // Buscar si ya existe la clase en el JSON
+                boolean claseEncontrada = false;
+
+                for (JsonNode cuentaNode : cuentasNode) {
+                      if (cuentaNode.has(item)) {
+                            ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(item);
+                            cuentasArray.add(nuevaCuenta);
+                            claseEncontrada = true;
+                            break;
+                      }
+                }
+
+                // Si no se encontró la clase, añadir una nueva
+                if (!claseEncontrada) {
+                      ObjectNode nuevaClase = objectMapper.createObjectNode();
+                      ArrayNode cuentasArray = objectMapper.createArrayNode();
+                      cuentasArray.add(nuevaCuenta);
+                      nuevaClase.set(item, cuentasArray);
+                      cuentasNode.add(nuevaClase);
+                }
+
+                // Escribir el archivo JSON actualizado
+                objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+
+          } catch (IOException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("Error al guardar el item");
+                alert.showAndWait();
+          }
     }
 
     // metodo para cargar items en dropdown segun inicia la aplicacion
