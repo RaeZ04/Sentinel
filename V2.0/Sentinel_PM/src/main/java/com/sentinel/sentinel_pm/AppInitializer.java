@@ -18,25 +18,25 @@ public class AppInitializer extends Application {
     private double xOffset = 0;
     private double yOffset = 0;
 
-    @Override
+        @Override
     public void start(@SuppressWarnings("exports") Stage stage) {
-
         try {
             // Leer la ruta desde el archivo JSON
             String jsonFilePath = "config.json";
             File jsonFile = new File(jsonFilePath);
             FXMLLoader fxmlLoader;
 
-            //si el archivo existe, lee la ruta y redirije a inicio, si no a configuracion para crear el archivo JSON
+            // si el archivo existe, lee la ruta y redirige a inicio, si no a configuracion para crear el archivo JSON
             if (jsonFile.exists()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonNode = objectMapper.readTree(jsonFile);
                 String ruta = jsonNode.get("ruta").asText();
-                File directorio = new File(ruta);
 
-                // si el directorio existe entonces a inicio, si no existe a configuracion
-                if (directorio.exists()) {
+                // Verificar que la ruta no sea nula o vacía
+                if (ruta != null && !ruta.isEmpty()) {
+
                     fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+
                 } else {
                     fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
                 }

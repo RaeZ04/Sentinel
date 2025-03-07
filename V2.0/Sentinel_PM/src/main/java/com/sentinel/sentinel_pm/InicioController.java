@@ -125,10 +125,9 @@ public class InicioController {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonNode = objectMapper.readTree(jsonFile);
                 String passwd = jsonNode.get("passwd").asText();
-                System.out.println(passwd);
-                // File contr = new File(passwd);
                 return passwd;
             }
+
             return "";
 
         }catch(Exception e){

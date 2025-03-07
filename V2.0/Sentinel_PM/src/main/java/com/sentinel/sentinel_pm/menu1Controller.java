@@ -19,12 +19,11 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class menu1Controller {
 
@@ -60,22 +59,22 @@ public class menu1Controller {
 
     private double lastY;
 
-    //////////////////////////////////////////// RUTAS ARCHIVOS DE
-    //////////////////////////////////////////// ENCRIPTADO////////////////////////////////////////
-    String nombreUsuarioWin = System.getProperty("user.name");
-    String ruta = "C:\\Users\\" + nombreUsuarioWin + "\\Documents\\logsPass\\acc.gpg"; //cambiar por variable
-    String rutaTemp = "C:\\Users\\" + nombreUsuarioWin + "\\Documents\\logsPass\\acc.txt"; //cambiar por la variable de arriba
-    private static String key = "Rammusmaricones.";
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //--------------------RUTAS DE ARCHIVOS--------------------------------------//
+    String ruta = obtenerRutaJSON();//obtener desde json
+    String rutaTemp = ruta+"/acc.json";//obtener desde json
+    //-------------------------------------------------------------------------------//
 
     @SuppressWarnings("rawtypes")
     private ComboBox dropdownUsuarios = new ComboBox();// Desplegable para mostrar las cuentas
 
+    //=========================================INITIALIZE=======================================================//
     @SuppressWarnings("unchecked")
     @FXML
     protected void initialize() {
+        //al iniciar carga todos las etiquetas con los nombres de las cuentas
         cargarItemsEnDropdown(dropdown);
 
+        //----------------------------CONFIGURACION DE BOTONES BARRA DE ARRIBA------------------------------------//
         exitButton.setOnAction(event -> {
             Stage stage = (Stage) exitButton.getScene().getWindow();
             Timeline timeline = new Timeline(
@@ -95,25 +94,7 @@ public class menu1Controller {
         });
 
         exitButton.setOnAction(event -> {
-            String archivoEnTXT = rutaTemp;
-
-            try {
-                encryptFile(archivoEnTXT, ruta);
-            } catch (Exception d) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al desencriptar el archivo");
-                alert.showAndWait();
-            }
-
-            File file = new File(archivoEnTXT);
-            if (!file.delete()) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al borrar el archivo");
-                alert.showAndWait();
-            }
-
+            //AQUI ENCRIPTAR EL ARCHIVO CUANDO AL APP SE CIERRE
             Platform.exit();
         });
 
@@ -139,6 +120,7 @@ public class menu1Controller {
                 });
             }
         });
+        //-----------------------------------------------------------------------------------------------------------------//
 
         // Mostrar Contraseña
         mostrarContraseña.setOnAction(e -> {
@@ -224,8 +206,8 @@ public class menu1Controller {
 
             dialog.show();
         });
-        // Establecer el cursor a mano de botones
 
+        // Establecer el cursor a mano de botones
         dropdown.setOnMouseEntered(event -> dropdown.getScene().setCursor(Cursor.HAND));
         dropdown.setOnMouseExited(event -> dropdown.getScene().setCursor(Cursor.DEFAULT));
 
@@ -498,63 +480,18 @@ public class menu1Controller {
             });
 
         });
-
-        // Encriptar y desencriptar:
-        try {
-            encryptFile(rutaTemp, ruta);
-            decryptFile(ruta, rutaTemp);
-        } catch (Exception s) {
-            s.printStackTrace();
-        }
     };
+    //================================FIN DE INITIALIZE=======================================================================//
 
 
 
 
 
+    //===============================METODOS=============================================================================//
+    // Guardar Cuentas en el archivo json
+        public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
+        throws IOException {
 
-
-
-
-    ///////////////////////////////// METODOS DE ENCRIPTADO Y
-    ///////////////////////////////// DESENCRIPTADO//////////////////////////////////////////////
-    public static void encryptFile(String inputFile, String outputFile) throws Exception {
-        byte[] inputBytes = Files.readAllBytes(Paths.get(inputFile));
-        byte[] outputBytes = encrypt(inputBytes, key);
-        Files.write(Paths.get(outputFile), outputBytes);
-    }
-
-    public static void decryptFile(String inputFile, String outputFile) throws Exception {
-        byte[] inputBytes = Files.readAllBytes(Paths.get(inputFile));
-        byte[] outputBytes = decrypt(inputBytes, key);
-        Files.write(Paths.get(outputFile), outputBytes);
-    }
-
-    public static byte[] encrypt(byte[] data, String key) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(), "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-        return cipher.doFinal(data);
-    }
-
-    public static byte[] decrypt(byte[] data, String key) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-        return cipher.doFinal(data);
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-    // Guardar Cuentas en el archivo
-    public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
-            throws IOException {
         // comprueba si existen elementos en el dropdown
         if (dropdownVar.getValue() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -563,29 +500,46 @@ public class menu1Controller {
             alert.showAndWait();
         } else { // si existen elementos
             File file = new File(rutaTemp);
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(file));// leer el archivo
-                String line;
-                StringBuilder fileContent = new StringBuilder();// almacena el contenido del archivo
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode;
 
-                while ((line = br.readLine()) != null) {// mientras haya lineas en el archivo
-                    fileContent.append(line).append(System.lineSeparator());// añade la linea al contenido del archivo
-                    if (line.equals(dropdownVar.getValue().toUpperCase())) {// si la linea es igual al nombre del
-                        // dropdown
-                        fileContent.append("-").append(usernameField).append(" : ").append(passwordField).append(System.lineSeparator());// añade el usuario y la contraseña
-                    }
-                }
-                br.close();
-
-                BufferedWriter bw = new BufferedWriter(new FileWriter(file));// escribir en el archivo
-                bw.write(fileContent.toString());
-                bw.close();// cerrar el archivo
-            } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al guardar las cuentas");
-                alert.showAndWait();
+            // Leer el archivo JSON
+            if (file.exists()) {
+                rootNode = objectMapper.readTree(file);
+            } else {
+                rootNode = objectMapper.createObjectNode();
             }
+
+            // Obtener el nodo de cuentas
+            ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+
+            // Buscar si ya existe la clase en el JSON
+            boolean claseEncontrada = false;
+
+            for (JsonNode cuentaNode : cuentasNode) {
+                if (cuentaNode.has(dropdownVar.getValue())) {
+                    ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(dropdownVar.getValue());
+                    ObjectNode nuevaCuenta = objectMapper.createObjectNode();
+                    nuevaCuenta.put(usernameField, passwordField);
+                    cuentasArray.add(nuevaCuenta);
+                    claseEncontrada = true;
+                    break;
+                }
+            }
+
+            // Si no se encontró la clase, añadir una nueva
+            if (!claseEncontrada) {
+                ObjectNode nuevaClase = objectMapper.createObjectNode();
+                ArrayNode cuentasArray = objectMapper.createArrayNode();
+                ObjectNode nuevaCuenta = objectMapper.createObjectNode();
+                nuevaCuenta.put(usernameField, passwordField);
+                cuentasArray.add(nuevaCuenta);
+                nuevaClase.set(dropdownVar.getValue(), cuentasArray);
+                cuentasNode.add(nuevaClase);
+            }
+
+            // Escribir el archivo JSON actualizado
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
         }
     }
 
@@ -603,28 +557,48 @@ public class menu1Controller {
         }
     }
 
-    // metodo para cargar items en dropdown
-    private void cargarItemsEnDropdown(ComboBox<String> dropdown1) {
-        String filePath = rutaTemp;
-        dropdown1.getItems().clear(); // Limpiar el dropdown antes de cargar los nuevos elementos
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.equals(line.toUpperCase())) {
-                    dropdown1.getItems().add(line);
+    // metodo para cargar items en dropdown segun inicia la aplicacion
+    private void cargarItemsEnDropdown(ComboBox<String> dropdownArg) {
+
+        dropdownArg.getItems().clear(); // Limpiar el dropdown antes de cargar los nuevos elementos
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            File file = new File(rutaTemp);
+
+            if (!file.exists()) {
+                throw new FileNotFoundException("El archivo JSON no existe: " + rutaTemp);
+            }
+
+            JsonNode rootNode = objectMapper.readTree(file);
+            JsonNode cuentasNode = rootNode.path("cuentas");
+
+            if (cuentasNode.isArray()) {
+                for (JsonNode cuentaNode : cuentasNode) {
+                    cuentaNode.fieldNames().forEachRemaining(cuenta -> {
+                        dropdownArg.getItems().add(cuenta);
+                    });
                 }
             }
-            if (dropdown1.getItems().isEmpty()) {
-                dropdown1.setPromptText("No hay clases añadidas");
-                dropdown1.setDisable(true); // Deshabilitar el dropdown si no hay elementos
+
+            if (dropdownArg.getItems().isEmpty()) {
+                dropdownArg.setPromptText("No hay clases añadidas");
+                dropdownArg.setDisable(true); // Deshabilitar el dropdown si no hay elementos
             } else {
-                dropdown1.setPromptText("Selecciona una clase");
-                dropdown1.setDisable(false); // Habilitar el dropdown si hay elementos
+                dropdownArg.setPromptText("Selecciona una clase");
+                dropdownArg.setDisable(false); // Habilitar el dropdown si hay elementos
             }
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Archivo JSON no encontrado");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al cargar los items");
+            alert.setHeaderText("Error al cargar los items (dropdown)");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
@@ -770,4 +744,24 @@ public class menu1Controller {
         }
     }
 
+    private String obtenerRutaJSON(){
+        try{
+            // Leer la ruta desde el archivo JSON
+            String jsonFilePath = "config.json";
+            File jsonFile = new File(jsonFilePath);
+
+            if(jsonFile.exists()){
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(jsonFile);
+                String ruta = jsonNode.get("ruta").asText();
+                return ruta;
+            }
+            return "";
+
+        }catch(Exception e){
+            return null;
+        }
+    }
+
+//=============================== FIN METODOS=========================================================================//
 }
