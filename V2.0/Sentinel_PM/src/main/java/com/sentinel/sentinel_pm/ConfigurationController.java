@@ -31,6 +31,7 @@ public class ConfigurationController {
       @FXML
       private TextField PasswdTextBox;
 
+
       @FXML
       private TextField rutaArchivoTextBox;
 
@@ -45,6 +46,7 @@ public class ConfigurationController {
       private void initialize() {
 
             File jsonFile = new File("config.json");
+
 
             botonGuardar.setOnAction(event -> {
 
