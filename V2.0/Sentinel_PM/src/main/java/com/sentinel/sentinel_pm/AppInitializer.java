@@ -1,6 +1,7 @@
 package com.sentinel.sentinel_pm;
 
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,17 +18,29 @@ public class AppInitializer extends Application {
     private double xOffset = 0;
     private double yOffset = 0;
 
+    @Override
     public void start(@SuppressWarnings("exports") Stage stage) {
-        try {
-            //comprobacion de directorio
-            String username = System.getProperty("user.name");
-            File directorio = new File("C:\\Users\\" + username + "\\Documents\\logsPass");
 
+        try {
+            // Leer la ruta desde el archivo JSON
+            String jsonFilePath = "config.json";
+            File jsonFile = new File(jsonFilePath);
             FXMLLoader fxmlLoader;
 
-            if (directorio.exists()) {
-                 fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
-            }else{
+            //si el archivo existe, lee la ruta y redirije a inicio, si no a configuracion para crear el archivo JSON
+            if (jsonFile.exists()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(jsonFile);
+                String ruta = jsonNode.get("ruta").asText();
+                File directorio = new File(ruta);
+
+                // si el directorio existe entonces a inicio, si no existe a configuracion
+                if (directorio.exists()) {
+                    fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+                } else {
+                    fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
+                }
+            } else {
                 fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
             }
 
@@ -46,7 +59,7 @@ public class AppInitializer extends Application {
         }
     }
 
-    public void changeScene(@SuppressWarnings("exports")Stage stage, String fxml) {
+    public void changeScene(@SuppressWarnings("exports") Stage stage, String fxml) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(fxml));
             Parent root = fxmlLoader.load();
@@ -75,8 +88,6 @@ public class AppInitializer extends Application {
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }
-
-

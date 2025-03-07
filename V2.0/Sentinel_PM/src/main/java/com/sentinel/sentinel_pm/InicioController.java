@@ -1,5 +1,9 @@
 package com.sentinel.sentinel_pm;
 
+import java.io.File;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -7,20 +11,12 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class InicioController {
 
@@ -41,64 +37,15 @@ public class InicioController {
 
     private AppInitializer appInitializer = new AppInitializer();
 
-    String nombreUsuarioWin = System.getProperty("user.name");
-    String ruta ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.gpg"; //cambiar por clase que contenga esto y no repetir codigo
-    String rutaTemp ="C:\\Users\\"+ nombreUsuarioWin +"\\Documents\\logsPass\\acc.txt"; //cambiar por clase que contenga esto y no repetir codigo
-    private static String key = "Rammusmaricones.";
-
-
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------//
     @FXML
     protected void initialize() {
-
-
-        //cambiar metodo, si es la primera vez que se inicia la app, se muestra una vista en la que el usuario puede definir la contrasena usada y el directorio donde se guardara el archivo
-
-        // crear o verificar si existe carpeta
-//        String username = System.getProperty("user.name");
-//        File directorio = new File("C:\\Users\\" + username + "\\Documents\\logsPass");
-//
-//        if (!directorio.exists()) {
-//            try {
-//                System.out.print("directorio no existe try");
-//
-//            }catch (Exception e){
-//                System.out.println(e);
-//                System.out.println("Error al crear el directorio");
-//            }
-//        }
-//
-//        File archivo = new File(directorio, "acc.gpg");
-//        if (!archivo.exists()) {
-//            try {
-//                //archivo.createNewFile();
-//                //appInitializer.changeScene(primaryStage, "Configuracion.fxml");
-//                System.out.print("archivo no existe try");
-//
-//            } catch (Exception e) {
-//                System.out.println("Error al crear el archivo");
-//            }
-//        }
-
-        // Desencriptar el archivo
-        try {
-            //decryptFile(ruta, rutaTemp);
-        } catch (Exception ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al descifrar el archivo");
-            alert.showAndWait();
-        }
-
         // Configuración de los botones
-
         botonInicio.setOnMouseEntered(event -> botonInicio.getScene().setCursor(Cursor.HAND));
         botonInicio.setOnMouseExited(event -> botonInicio.getScene().setCursor(Cursor.DEFAULT));
 
-        /////////////////////////////////////////////////////////////////////// BARRA DE
-        /////////////////////////////////////////////////////////////////////// ARRIBA////////////////////////
-
+    //---------------------------------------------------- BARRA DE ARRIBA-------------------------------------------------------------------------------//
         // boton de inicio
-
         botonInicio.setOnAction(event -> iniciarSesion());
         passwordField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -148,33 +95,18 @@ public class InicioController {
             }
         });
     }
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //----------------------------------------------------FIN DE BARRA DE ARRIBA-------------------------------------------------------------------------//
+//-------------------------------------------------------FIN DE INITIALIZE--------------------------------------------------------------------------------//
 
-    /////////////////////////////////////////////////////////////////////// METODOS
-    /////////////////////////////////////////////////////////////////////// DE
-    /////////////////////////////////////////////////////////////////////// CIFRADO
-    /////////////////////////////////////////////////////////////////////// Y
-    /////////////////////////////////////////////////////////////////////// DESCIFRADO////////////
-    public static void decryptFile(String inputFile, String outputFile) throws Exception {
-        byte[] inputBytes = Files.readAllBytes(Paths.get(inputFile));
-        byte[] outputBytes = decrypt(inputBytes, key);
-        Files.write(Paths.get(outputFile), outputBytes);
-    }
 
-    public static byte[] decrypt(byte[] data, String key) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-        return cipher.doFinal(data);
-    }
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//------------------------------------------------METODOS---------------------------------------------------------------------------------------------//
     private void iniciarSesion() {
-        String password = passwordField.getText();
-        if (password.isEmpty()) {
+        String password = obtenerPasswdJSON();
+        String passwordText = passwordField.getText();
+        if (passwordText.isEmpty()) {
             mensajeError.setText("Tienes que introducir una contraseña");
             mensajeError.setVisible(true);
-        } else if (!password.equals("1234")) { // Replace "1234" with the decrypted password
+        } else if (!passwordText.equals(password)) {
             mensajeError.setText("La contraseña es incorrecta");
             mensajeError.setVisible(true);
         } else {
@@ -183,4 +115,25 @@ public class InicioController {
         }
     }
 
+    public String obtenerPasswdJSON(){
+        try{
+            // Leer la ruta desde el archivo JSON
+            String jsonFilePath = "config.json";
+            File jsonFile = new File(jsonFilePath);
+
+            if(jsonFile.exists()){
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(jsonFile);
+                String passwd = jsonNode.get("passwd").asText();
+                System.out.println(passwd);
+                // File contr = new File(passwd);
+                return passwd;
+            }
+            return "";
+
+        }catch(Exception e){
+            return null;
+        }
+    }
+//------------------------------------------------FIN DE METODOS--------------------------------------------------------------------------------------//
 }
