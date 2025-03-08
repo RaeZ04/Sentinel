@@ -47,6 +47,6 @@ Para las siguientes versiones tenemos pensado mejorar el programa en diferentes 
 - [x] eliminar cuentas
 - [x] elegir la contraseña de usuario
 - [x] agregar nombre de aplicacion dentro de la misma en forma de logotipo
-- [ ] comprobacion de contrasenas repetidas y un boton que te muestre las repetidas
+- [ ] agregar enlace a pagina de documentacion y ayuda
 - [x] cambiar el metodo de busqueda para que no haya fallos en cuenta y clase
 - [x] cambiar metodo de inicio de sesion
