@@ -185,8 +185,7 @@ public class menu1Controller {
             acceptButton.addEventFilter(ActionEvent.ACTION, event -> {
                 String item = dialog.getEditor().getText();
                 if (!item.isEmpty()) {
-                    String itemmayusculas = item.toUpperCase();
-                    guardarItemEnArchivo(itemmayusculas);
+                    guardarItemEnArchivo(item);
                     cargarItemsEnDropdown(dropdown); // Actualizar el dropdown
                     dialog.close();
                 }
@@ -300,7 +299,7 @@ public class menu1Controller {
 
             // funcion boton aceptar
             aceptar.setOnAction(event -> {
-                actualizarContraseña(dropdownAct, dropdownCuentasAct, textFieldContrasena, textField);
+                actualizarContraseña(dropdownAct, dropdownCuentasAct, textField, textFieldContrasena);
                 ventanaActualizar.close();
             });
 
@@ -488,7 +487,7 @@ public class menu1Controller {
 
 
     //===============================METODOS=============================================================================//
-    // Guardar Cuentas en el archivo json
+    // Guardar Cuentas en el archivo JSON
         public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
         throws IOException {
 
@@ -543,61 +542,54 @@ public class menu1Controller {
         }
     }
 
-    // metodo para guardar items en archivo
+    // metodo para guardar items en archivo JSON
     private void guardarItemEnArchivo(String item) {
-          String filePath = rutaTemp;
-          File file = new File(filePath);
-          ObjectMapper objectMapper = new ObjectMapper();
-          JsonNode rootNode;
+        String filePath = rutaTemp;
+        File file = new File(filePath);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode;
 
-          try {
-                // Leer el archivo JSON
-                if (file.exists()) {
-                      rootNode = objectMapper.readTree(file);
-                } else {
-                      rootNode = objectMapper.createObjectNode();
+        try {
+            // Leer el archivo JSON
+            if (file.exists()) {
+                rootNode = objectMapper.readTree(file);
+            } else {
+                rootNode = objectMapper.createObjectNode();
+            }
+
+            // Obtener el nodo de cuentas
+            ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+
+            // Buscar si ya existe la clase en el JSON
+            boolean claseEncontrada = false;
+
+            for (JsonNode cuentaNode : cuentasNode) {
+                if (cuentaNode.has(item)) {
+                    claseEncontrada = true;
+                    break;
                 }
+            }
 
-                // Obtener el nodo de cuentas
-                ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+            // Si no se encontró la clase, añadir una nueva
+            if (!claseEncontrada) {
+                ObjectNode nuevaClase = objectMapper.createObjectNode();
+                ArrayNode cuentasArray = objectMapper.createArrayNode();
+                nuevaClase.set(item, cuentasArray);
+                cuentasNode.add(nuevaClase);
+            }
 
-                // Crear un nuevo nodo de cuenta
-                ObjectNode nuevaCuenta = objectMapper.createObjectNode();
-                nuevaCuenta.put(item, "valor"); // Reemplaza "valor" con el valor que desees
+            // Escribir el archivo JSON actualizado
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
 
-                // Buscar si ya existe la clase en el JSON
-                boolean claseEncontrada = false;
-
-                for (JsonNode cuentaNode : cuentasNode) {
-                      if (cuentaNode.has(item)) {
-                            ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(item);
-                            cuentasArray.add(nuevaCuenta);
-                            claseEncontrada = true;
-                            break;
-                      }
-                }
-
-                // Si no se encontró la clase, añadir una nueva
-                if (!claseEncontrada) {
-                      ObjectNode nuevaClase = objectMapper.createObjectNode();
-                      ArrayNode cuentasArray = objectMapper.createArrayNode();
-                      cuentasArray.add(nuevaCuenta);
-                      nuevaClase.set(item, cuentasArray);
-                      cuentasNode.add(nuevaClase);
-                }
-
-                // Escribir el archivo JSON actualizado
-                objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
-
-          } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al guardar el item");
-                alert.showAndWait();
-          }
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Error al guardar el item");
+            alert.showAndWait();
+        }
     }
 
-    // metodo para cargar items en dropdown segun inicia la aplicacion
+    // metodo para cargar items en dropdown segun inicia la aplicacion (JSON)
     private void cargarItemsEnDropdown(ComboBox<String> dropdownArg) {
 
         dropdownArg.getItems().clear(); // Limpiar el dropdown antes de cargar los nuevos elementos
@@ -643,101 +635,130 @@ public class menu1Controller {
         }
     }
 
-    public void actualizarContraseña(ComboBox<String> primerDropdown, ComboBox<String> segundoDropdown, @SuppressWarnings("exports") TextField nuevoUsuario, @SuppressWarnings("exports") TextField nuevaContraseña) {
-        String apartadoSeleccionado = primerDropdown.getValue();
-        String cuentaSeleccionada = segundoDropdown.getValue();
-        String nuevoUsuarioTexto = nuevoUsuario.getText();
-        String nuevaContraseñaTexto = nuevaContraseña.getText();
+    //metodo para actualizar la contrasena en el JSON
+    public void actualizarContraseña(ComboBox<String> primerDropdown, ComboBox<String> segundoDropdown,
+            @SuppressWarnings("exports") TextField nuevoUsuario,
+            @SuppressWarnings("exports") TextField nuevaContraseña) {
+        String apartadoSeleccionado = primerDropdown.getValue(); //coje el nombre del nodo del primer dropdown
+        String cuentaSeleccionada = segundoDropdown.getValue(); //coje el usuario del segundo dropdown
+        String nuevoUsuarioTexto = nuevoUsuario.getText(); //coje el texto del usuario
+        String nuevaContraseñaTexto = nuevaContraseña.getText(); //coje el texto de la passwd
 
         // buscar cuenta en archivo y actualizarla
         File file = new File(rutaTemp);
-        File tempFile = new File("tempFile.txt");
         try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
-            String line;
-            boolean dentroDelApartadoCorrecto = false;
+            //abre el json y busca el nodo cuentas
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(file);
+            JsonNode cuentasNode = rootNode.path("cuentas");
 
-            while ((line = br.readLine()) != null) {
-                if (line.equals(apartadoSeleccionado.toUpperCase())) {
-                    dentroDelApartadoCorrecto = true;
-                } else if (line.equals(line.toUpperCase())) {
-                    dentroDelApartadoCorrecto = false;
-                }
+            //verifica si es un array y lo recorre
+            if (cuentasNode.isArray()) {
+                for (JsonNode cuentaNode : cuentasNode) {
+                    //hace un bucle buscando los nodos, si algun nodo coincide con el seleccionado en el primer dropdown entra
+                    if (cuentaNode.has(apartadoSeleccionado)) {
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(apartadoSeleccionado);
+                        //bucle para recorrer dentro del apartado seleccionado en el pirmer dropdown
+                        for (JsonNode cuenta : cuentasArray) {
+                            if (cuenta.has(cuentaSeleccionada)) {//si tiene la cuenta seleccionada recoje el texto
+                                ObjectNode cuentaObject = (ObjectNode) cuenta;
+                                String usuarioActual = cuentaSeleccionada;
+                                String contrasenaActual = cuentaObject.get(cuentaSeleccionada).asText();
 
-                if (dentroDelApartadoCorrecto && line.equals(cuentaSeleccionada)) {
-                    // Reemplazar la línea con los nuevos valores
-                    bw.write("-" + nuevaContraseñaTexto + " : " + nuevoUsuarioTexto);
-                    bw.newLine();
-                } else {
-                    bw.write(line);
-                    bw.newLine();
+                                // Actualizar usuario y contraseña
+                                String usuarioFinal = nuevoUsuarioTexto.isEmpty() ? usuarioActual : nuevoUsuarioTexto;
+                                String contrasenaFinal = nuevaContraseñaTexto.isEmpty() ? contrasenaActual : nuevaContraseñaTexto;
+
+                                cuentaObject.remove(cuentaSeleccionada);
+                                cuentaObject.put(usuarioFinal, contrasenaFinal);
+                                break;
+                            }
+                        }
+                        break;
+                    }
                 }
             }
-            br.close();
-            bw.close();
 
-            // Eliminar el archivo original y renombrar el archivo temporal
-            file.delete();
-            tempFile.renameTo(file);
+            // Escribir el archivo JSON actualizado
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
 
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Archivo JSON no encontrado");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
             alert.setHeaderText("Error al actualizar la contraseña");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
 
+    //metodo para mostrar las contrasenas en el scroll pane central cuando se pulsa en mostrar (JSON)
     public void mostrarContrasenas(ComboBox<String> dropdownString) {
-
         scrollpane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             lastY = event.getY();
-            scrollpane.setCursor(Cursor.CLOSED_HAND); // Cambiar el cursor a una mano cerrada cuando se presiona el ratón
+            scrollpane.setCursor(Cursor.CLOSED_HAND); // Cambiar el cursor a una mano cerrada cuando se presiona el raton
         });
         scrollpane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
             double deltaY = lastY - event.getY();
             lastY = event.getY();
-            scrollpane.setVvalue(scrollpane.getVvalue() + 2.75 * deltaY / scrollpane.getContent().getBoundsInLocal().getHeight());
+            scrollpane.setVvalue(
+                    scrollpane.getVvalue() + 2.75 * deltaY / scrollpane.getContent().getBoundsInLocal().getHeight());
         });
         scrollpane.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            scrollpane.setCursor(Cursor.DEFAULT); // Cambiar el cursor de vuelta al predeterminado cuando se suelta el ratón
+            scrollpane.setCursor(Cursor.DEFAULT); // Cambiar el cursor de vuelta al predeterminado cuando se suelta el
+                                                  // ratón
         });
 
         String opcionMostrar = dropdownString.getValue();
 
         File file = new File(rutaTemp);
         try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-
-            String line;
-            boolean encontrado = false;
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(file);
+            JsonNode cuentasNode = rootNode.path("cuentas");
 
             VBox vbox = new VBox(); // Crear un VBox en lugar de un FlowPane
             vbox.setAlignment(Pos.TOP_CENTER); // Centrar el contenido del VBox en la parte superior
             vbox.setPadding(new Insets(0, 70, 10, 70)); // Agregar padding
 
-            while ((line = br.readLine()) != null) {
-                line = line.replaceFirst("^- ", ""); // Elimina el guion inicial
+            boolean encontrado = false;
 
-                if (encontrado) {
-                    if (line.equals(line.toUpperCase())) {
+            if (cuentasNode.isArray()) {
+                for (JsonNode cuentaNode : cuentasNode) {
+                    if (cuentaNode.has(opcionMostrar)) {
+                        encontrado = true;
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(opcionMostrar);
+                        for (JsonNode cuenta : cuentasArray) {
+                            cuenta.fields().forEachRemaining(entry -> {
+                                String usuario = entry.getKey();
+                                String contrasena = entry.getValue().asText();
+                                String texto = usuario + ": " + contrasena;
+
+                                Label label = new Label(texto);
+                                FlowPane flowPane = new FlowPane(); // Crear un nuevo FlowPane para cada label
+                                flowPane.setAlignment(Pos.CENTER); // Centrar el contenido del FlowPane
+                                flowPane.getChildren().add(label); // Agregar el label al FlowPane
+                                flowPane.setStyle(
+                                        "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.5) transparent; -fx-border-width: 0 0 1px 0;");
+                                flowPane.setPadding(new Insets(12, 0, 12, 0)); // Agregar padding inferior de 15px
+                                vbox.getChildren().add(flowPane); // Agregar el FlowPane al VBox
+                            });
+                        }
                         break;
                     }
-
-                    Label label = new Label(line);
-                    FlowPane flowPane = new FlowPane(); // Crear un nuevo FlowPane para cada label
-                    flowPane.setAlignment(Pos.CENTER); // Centrar el contenido del FlowPane
-                    flowPane.getChildren().add(label); // Agregar el label al FlowPane
-                    flowPane.setStyle(
-                            "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.5) transparent; -fx-border-width: 0 0 1px 0;");
-                    flowPane.setPadding(new Insets(12, 0, 12, 0)); // Agregar padding inferior de 15px
-                    vbox.getChildren().add(flowPane); // Agregar el FlowPane al VBox
                 }
+            }
 
-                if (line.equals(opcionMostrar)) {
-                    encontrado = true;
-                }
+            if (!encontrado) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Información");
+                alert.setHeaderText("No se encontraron contraseñas para la clase seleccionada");
+                alert.showAndWait();
             }
 
             // Desactivar el desplazamiento horizontal
@@ -749,8 +770,6 @@ public class menu1Controller {
 
             scrollpane.setContent(vbox);
 
-            br.close();
-
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
@@ -759,31 +778,49 @@ public class menu1Controller {
         }
     }
 
+    //metodo para cargar las cuentas y contrasenas en el dropdown de actualizar contrasenas
     private void cargarItemsEnDropdownMinusculas(ComboBox<String> segundoDropdown, ComboBox<String> primerDropdown) {
         segundoDropdown.getItems().clear();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(rutaTemp))) {
-            String line;
-            boolean dentroDelApartado = false;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            File file = new File(rutaTemp);
 
-            while ((line = reader.readLine()) != null) {
-                if (primerDropdown.getValue() != null && line.equals(primerDropdown.getValue().toUpperCase())) {
-                    dentroDelApartado = true;
-                } else if (line.equals(line.toUpperCase())) {
-                    dentroDelApartado = false;
-                } else if (dentroDelApartado) {
-                    segundoDropdown.getItems().add(line);
+            if (!file.exists()) {
+                throw new FileNotFoundException("El archivo JSON no existe: " + rutaTemp);
+            }
+
+            JsonNode rootNode = objectMapper.readTree(file);
+            JsonNode cuentasNode = rootNode.path("cuentas");
+
+            if (cuentasNode.isArray()) {
+                for (JsonNode cuentaNode : cuentasNode) {
+                    if (cuentaNode.has(primerDropdown.getValue())) {
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(primerDropdown.getValue());
+                        for (JsonNode cuenta : cuentasArray) {
+                            cuenta.fieldNames().forEachRemaining(segundoDropdown.getItems()::add);
+                        }
+                        break;
+                    }
                 }
             }
 
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Archivo JSON no encontrado");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
             alert.setHeaderText("Error al cargar los items");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
 
+    //metodo para obtener la ruta del json
     private String obtenerRutaJSON(){
         try{
             // Leer la ruta desde el archivo JSON
