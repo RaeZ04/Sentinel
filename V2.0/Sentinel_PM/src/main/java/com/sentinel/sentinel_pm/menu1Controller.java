@@ -55,6 +55,9 @@ public class menu1Controller {
     private ScrollPane scrollpane;
 
     @FXML
+    private Button borrarClasesBoton;
+
+    @FXML
     private GridPane grid;
 
     private double lastY;
@@ -222,6 +225,11 @@ public class menu1Controller {
             });
 
             dialog.show();
+        });
+
+        //boton para borrar clases del JSON
+        borrarClasesBoton.setOnAction(e ->{
+            borrarClases();
         });
 
         // Establecer el cursor a mano de botones
@@ -928,6 +936,70 @@ public class menu1Controller {
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
+    }
+
+    //boton borrar clases JSON
+    private void borrarClases() {
+        String claseSeleccionada = dropdown.getValue(); // Obtener la clase seleccionada del dropdown
+
+        if (claseSeleccionada == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("No hay clase seleccionada");
+            alert.setContentText("Por favor, selecciona una clase para borrar.");
+            alert.showAndWait();
+            return;
+        }
+
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Confirmación de eliminación");
+        confirmDialog.setHeaderText("¿Estás seguro de que deseas eliminar esta clase?");
+        confirmDialog.setContentText("Clase: " + claseSeleccionada);
+
+        ButtonType buttonTypeYes = new ButtonType("Sí");
+        ButtonType buttonTypeNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        confirmDialog.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+
+        confirmDialog.showAndWait().ifPresent(response -> {
+            if (response == buttonTypeYes) {
+                File file = new File(rutaTemp);
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode rootNode = objectMapper.readTree(file);
+                    JsonNode cuentasNode = rootNode.path("cuentas");
+
+                    if (cuentasNode.isArray()) {
+                        for (int i = 0; i < cuentasNode.size(); i++) {
+                            JsonNode cuentaNode = cuentasNode.get(i);
+                            if (cuentaNode.has(claseSeleccionada)) {
+                                ((ArrayNode) cuentasNode).remove(i);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Escribir el archivo JSON actualizado
+                    objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+
+                    // Actualizar el dropdown después de borrar la clase
+                    cargarItemsEnDropdown(dropdown);
+
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Información");
+                    alert.setHeaderText("Clase eliminada");
+                    alert.setContentText("La clase " + claseSeleccionada + " ha sido eliminada.");
+                    alert.showAndWait();
+
+                } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error Dialog");
+                    alert.setHeaderText("Error al borrar la clase");
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            }
+        });
     }
 //=============================== FIN METODOS=========================================================================//
 }
