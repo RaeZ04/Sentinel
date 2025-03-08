@@ -70,6 +70,11 @@
                   </ImageView>
                </graphic>
             </Button>
+            <ImageView fitHeight="212.0" fitWidth="200.0" layoutY="-65.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@Media/sentinelPM-removebg-preview.png" />
+               </image>
+            </ImageView>
             </children></AnchorPane>
     </children>
 </HBox>
