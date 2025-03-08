@@ -715,11 +715,11 @@ public class menu1Controller {
         }
     }
 
-    //metodo para mostrar las contrasenas en el scroll pane central cuando se pulsa en mostrar (JSON)
+    // metodo para mostrar las contrasenas en el scroll pane central cuando se pulsa en mostrar (JSON)
     public void mostrarContrasenas(ComboBox<String> dropdownString) {
         scrollpane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             lastY = event.getY();
-            scrollpane.setCursor(Cursor.CLOSED_HAND); // Cambiar el cursor a una mano cerrada cuando se presiona el raton
+            scrollpane.setCursor(Cursor.CLOSED_HAND);
         });
         scrollpane.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
             double deltaY = lastY - event.getY();
@@ -728,8 +728,7 @@ public class menu1Controller {
                     scrollpane.getVvalue() + 2.75 * deltaY / scrollpane.getContent().getBoundsInLocal().getHeight());
         });
         scrollpane.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            scrollpane.setCursor(Cursor.DEFAULT); // Cambiar el cursor de vuelta al predeterminado cuando se suelta el
-                                                  // ratón
+            scrollpane.setCursor(Cursor.DEFAULT);
         });
 
         String opcionMostrar = dropdownString.getValue();
@@ -740,9 +739,12 @@ public class menu1Controller {
             JsonNode rootNode = objectMapper.readTree(file);
             JsonNode cuentasNode = rootNode.path("cuentas");
 
-            VBox vbox = new VBox(); // Crear un VBox en lugar de un FlowPane
-            vbox.setAlignment(Pos.TOP_CENTER); // Centrar el contenido del VBox en la parte superior
-            vbox.setPadding(new Insets(0, 70, 10, 70)); // Agregar padding
+            VBox vbox = new VBox();
+            vbox.setAlignment(Pos.CENTER);
+            vbox.setPadding(new Insets(10, 20, 10, 20));
+            vbox.setSpacing(10); // Añadir espacio entre los elementos del VBox
+            vbox.setMaxWidth(Double.MAX_VALUE);
+            vbox.setMinWidth(scrollpane.getWidth());//establecer el ancho del vbox que muestra las cuentas al ancho del scrollpane
 
             boolean encontrado = false;
 
@@ -758,13 +760,37 @@ public class menu1Controller {
                                 String texto = usuario + ": " + contrasena;
 
                                 Label label = new Label(texto);
-                                FlowPane flowPane = new FlowPane(); // Crear un nuevo FlowPane para cada label
-                                flowPane.setAlignment(Pos.CENTER); // Centrar el contenido del FlowPane
-                                flowPane.getChildren().add(label); // Agregar el label al FlowPane
-                                flowPane.setStyle(
+                                Button eliminarButton = new Button("Eliminar");
+                                eliminarButton.setStyle(
+                                        "-fx-background-color: #3b4a6b; -fx-text-fill: white; -fx-border-radius: 5px;");
+                                eliminarButton.setOnAction(event -> {
+                                    Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+                                    confirmDialog.setTitle("Confirmación de eliminación");
+                                    confirmDialog.setHeaderText("¿Estás seguro de que deseas eliminar esta cuenta?");
+                                    confirmDialog.setContentText("Usuario: " + usuario);
+
+                                    ButtonType buttonTypeYes = new ButtonType("Sí");
+                                    ButtonType buttonTypeNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                                    confirmDialog.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+
+                                    confirmDialog.showAndWait().ifPresent(response -> {
+                                        if (response == buttonTypeYes) {
+                                            borrarCuentas(opcionMostrar, usuario);
+                                            mostrarContrasenas(dropdownString);
+                                        }
+                                    });
+                                });
+
+                                HBox hbox = new HBox(10); // Crear un HBox para contener el label y el botón
+                                hbox.setAlignment(Pos.CENTER);
+                                hbox.getChildren().addAll(label, eliminarButton);
+                                hbox.setStyle(
                                         "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.5) transparent; -fx-border-width: 0 0 1px 0;");
-                                flowPane.setPadding(new Insets(12, 0, 12, 0)); // Agregar padding inferior de 15px
-                                vbox.getChildren().add(flowPane); // Agregar el FlowPane al VBox
+                                hbox.setPadding(new Insets(12, 0, 12, 0)); // Agregar padding inferior de 15px
+                                hbox.setMaxWidth(Double.MAX_VALUE); // Extender el HBox hasta los laterales
+                                HBox.setHgrow(label, Priority.ALWAYS); // Permitir que el label crezca
+                                vbox.getChildren().add(hbox); // Agregar el HBox al VBox
                             });
                         }
                         break;
@@ -781,12 +807,16 @@ public class menu1Controller {
 
             // Desactivar el desplazamiento horizontal
             scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-            scrollpane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollpane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
             // Limitar el ancho del VBox al ancho del ScrollPane
             vbox.setMaxWidth(scrollpane.getWidth());
 
-            scrollpane.setContent(vbox);
+            // Centrar el VBox dentro del ScrollPane
+            StackPane centeredPane = new StackPane(vbox);
+            centeredPane.setAlignment(Pos.TOP_CENTER); // Asegurar que el VBox se alinee en la parte superior
+            centeredPane.setMaxWidth(Double.MAX_VALUE); // Extender el StackPane hasta los laterales
+            scrollpane.setContent(centeredPane);
 
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -858,5 +888,46 @@ public class menu1Controller {
         }
     }
 
+    // borrar cuentas de JSON
+    private void borrarCuentas(String clase, String cuenta) {
+        File file = new File(rutaTemp);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(file);
+            JsonNode cuentasNode = rootNode.path("cuentas");
+
+            if (cuentasNode.isArray()) {
+                for (JsonNode cuentaNode : cuentasNode) {
+                    if (cuentaNode.has(clase)) {
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(clase);
+                        for (int i = 0; i < cuentasArray.size(); i++) {
+                            JsonNode cuentaJson = cuentasArray.get(i);
+                            if (cuentaJson.has(cuenta)) {
+                                cuentasArray.remove(i);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Escribir el archivo JSON actualizado
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Archivo JSON no encontrado");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Error al borrar la cuenta");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
+    }
 //=============================== FIN METODOS=========================================================================//
 }

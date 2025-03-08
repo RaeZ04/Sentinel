@@ -40,13 +40,13 @@
                </font>
             </Label>
             <Label layoutX="86.0" layoutY="454.0" prefHeight="29.0" prefWidth="644.0" text="Agregar icono de pregunta que redirija a la pagina y en ella se explique que se tiene que hacer en esta vista y links a otros &quot;primeros pasos&quot;" textFill="RED" />
-            <Button fx:id="botonBuscarCarpeta" layoutX="564.0" layoutY="196.0" mnemonicParsing="false" prefHeight="29.0" prefWidth="32.0" style="-fx-background-color: #162031;" />
             <Button fx:id="botonGuardar" layoutX="396.0" layoutY="330.0" mnemonicParsing="false" prefHeight="24.0" prefWidth="96.0" text="GUARDAR" />
             <ImageView fitHeight="34.0" fitWidth="32.0" layoutX="605.0" layoutY="209.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@Media/folder.png" />
                </image>
             </ImageView>
+            <Button fx:id="botonBuscarCarpeta" layoutX="605.0" layoutY="211.0" mnemonicParsing="false" prefHeight="29.0" prefWidth="32.0" style="-fx-background-color: transparent;" />
             <TextField id="passwordField" fx:id="rutaArchivoTextBox" layoutX="404.0" layoutY="217.0" prefHeight="24.0" prefWidth="201.0" stylesheets="@InicioStyle.css" />
          </children></AnchorPane>
    </children>

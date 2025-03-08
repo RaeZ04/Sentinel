@@ -19,6 +19,8 @@ import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Window;
 
 public class ConfigurationController {
 
@@ -47,7 +49,7 @@ public class ConfigurationController {
 
             File jsonFile = new File("config.json");
 
-
+            //boton guardar para crear configuracion
             botonGuardar.setOnAction(event -> {
 
                   // comprobacion de que ambos campos estan recogidos
@@ -74,6 +76,11 @@ public class ConfigurationController {
                         alert.setHeaderText("No deje ningun campo en blanco");
                         alert.showAndWait();
                   }
+            });
+
+            //boton de carpeta para elegir carpeta
+            botonBuscarCarpeta.setOnAction(event -> {
+                  buscarCarpeta();
             });
 
             // ---------------------------------------------------BARRA DE ARRIBA------------------------------------------------------
@@ -144,32 +151,46 @@ public class ConfigurationController {
 
             ObjectMapper objectMapper = new ObjectMapper();
             try {
-                objectMapper.writeValue(jsonFile, passRuta);
+                  objectMapper.writeValue(jsonFile, passRuta);
 
-                if (jsonFile.exists()) {
-                    System.out.println("json creado");
-                } else {
-                    System.out.println("json no creado");
-                }
+                  if (jsonFile.exists()) {
+                        System.out.println("json creado");
+                  } else {
+                        System.out.println("json no creado");
+                  }
             } catch (IOException e) {
-                System.out.println("Error al crear el JSON: " + e.getMessage());
-                e.printStackTrace();
+                  System.out.println("Error al crear el JSON: " + e.getMessage());
+                  e.printStackTrace();
             }
 
             try {
-                FXMLLoader fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
-                Parent root = fxmlLoader.load();
-                Scene scene = new Scene(root);
-                scene.setFill(Color.TRANSPARENT);
+                  FXMLLoader fxmlLoader = new FXMLLoader(
+                              AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+                  Parent root = fxmlLoader.load();
+                  Scene scene = new Scene(root);
+                  scene.setFill(Color.TRANSPARENT);
 
-                Stage stage = (Stage) botonGuardar.getScene().getWindow();
-                stage.setScene(scene);
-                stage.setResizable(false);
+                  Stage stage = (Stage) botonGuardar.getScene().getWindow();
+                  stage.setScene(scene);
+                  stage.setResizable(false);
 
-                stage.show();
+                  stage.show();
             } catch (IOException e) {
-                System.out.println("Error al cargar la nueva escena: " + e.getMessage());
-                e.printStackTrace();
+                  System.out.println("Error al cargar la nueva escena: " + e.getMessage());
+                  e.printStackTrace();
             }
-        }
+      }
+
+      public void buscarCarpeta() {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Seleccionar Carpeta");
+            Window stage = botonBuscarCarpeta.getScene().getWindow();
+            File selectedDirectory = directoryChooser.showDialog(stage);
+
+            if (selectedDirectory != null) {
+                  rutaArchivoTextBox.setText(selectedDirectory.getAbsolutePath());
+            } else {
+                  System.out.println("No se seleccionó ninguna carpeta");
+            }
+      }
 }
