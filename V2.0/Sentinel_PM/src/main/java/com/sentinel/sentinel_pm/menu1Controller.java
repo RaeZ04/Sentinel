@@ -71,6 +71,24 @@ public class menu1Controller {
     @SuppressWarnings("unchecked")
     @FXML
     protected void initialize() {
+        //comprobar existencia de JSON si no existe lo crea con el formato inicial
+        File file = new File(rutaTemp);
+        if (!file.exists()) {
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                ObjectNode rootNode = objectMapper.createObjectNode();
+                rootNode.set("cuentas", objectMapper.createArrayNode());
+                objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+            } catch (IOException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("Error al crear el archivo JSON");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            }
+        }
+
+
         //al iniciar carga todos las etiquetas con los nombres de las cuentas
         cargarItemsEnDropdown(dropdown);
 
@@ -488,7 +506,7 @@ public class menu1Controller {
 
     //===============================METODOS=============================================================================//
     // Guardar Cuentas en el archivo JSON
-        public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
+    public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
         throws IOException {
 
         // comprueba si existen elementos en el dropdown
