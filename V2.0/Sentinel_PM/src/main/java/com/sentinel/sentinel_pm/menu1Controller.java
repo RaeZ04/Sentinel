@@ -390,7 +390,7 @@ public class menu1Controller {
         añadirCuenta.setOnAction(d -> {
             Stage tempStage = new Stage();
             tempStage.initStyle(StageStyle.UNDECORATED); // Remove the title bar
-            tempStage.setWidth(350);
+            tempStage.setWidth(400);
             tempStage.setHeight(300);
             tempStage.setResizable(false);
 
@@ -432,6 +432,23 @@ public class menu1Controller {
             // Establecer posición del campo de texto
             textFieldContrasena.setLayoutX(50);
             textFieldContrasena.setLayoutY(175);
+
+            // Botón para generar contraseña aleatoria
+            Button generarPassButton = new Button("Generar");
+            generarPassButton.setLayoutX(310);
+            generarPassButton.setLayoutY(175);
+            generarPassButton.setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;");
+            generarPassButton.setCursor(Cursor.HAND);
+            generarPassButton.setOnMouseEntered(event -> generarPassButton
+                    .setStyle("-fx-background-color: #1a2a3a; -fx-text-fill: white; -fx-border-radius: 20px;"));
+            generarPassButton.setOnMouseExited(event -> generarPassButton
+                    .setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;"));
+
+            // Evento del botón para generar contraseña aleatoria
+            generarPassButton.setOnAction(event -> {
+                String passAleatoria = generarPassAleatoria();
+                textFieldContrasena.setText(passAleatoria);
+            });
 
             /////////////////////////////////////////// BOTONES ACEPTAR Y
             /////////////////////////////////////////// CANCELAR////////////////////////////////////////
@@ -475,6 +492,7 @@ public class menu1Controller {
             root.getChildren().add(dropdown);
             root.getChildren().addAll(label, textField);
             root.getChildren().addAll(labelContrasena, textFieldContrasena);
+            root.getChildren().add(generarPassButton); // Asegúrate de agregar el botón al Group
             root.getChildren().add(aceptar);
             root.getChildren().add(cancelar);
 
@@ -503,7 +521,6 @@ public class menu1Controller {
                 tempStage.setX(event.getScreenX() - xOffset[0]);
                 tempStage.setY(event.getScreenY() - yOffset[0]);
             });
-
         });
     };
     //================================FIN DE INITIALIZE=======================================================================//
@@ -1001,5 +1018,18 @@ public class menu1Controller {
             }
         });
     }
-//=============================== FIN METODOS=========================================================================//
+
+    // Función para generar una contraseña aleatoria
+    private String generarPassAleatoria() {
+        int length = 10;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+        StringBuilder password = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int index = (int) (Math.random() * chars.length());
+            password.append(chars.charAt(index));
+        }
+        return password.toString();
+    }
+
+    //=============================== FIN METODOS=========================================================================//
 }
