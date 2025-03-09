@@ -47,7 +47,7 @@ public class ConfigurationController {
       @FXML
       private void initialize() {
 
-            File jsonFile = new File("../config.json");
+            File jsonFile = new File("config.json");
 
             //boton guardar para crear configuracion
             botonGuardar.setOnAction(event -> {

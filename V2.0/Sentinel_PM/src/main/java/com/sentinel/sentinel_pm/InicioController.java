@@ -118,7 +118,7 @@ public class InicioController {
     public String obtenerPasswdJSON(){
         try{
             // Leer la ruta desde el archivo JSON
-            String jsonFilePath = "../config.json";
+            String jsonFilePath = "config.json";
             File jsonFile = new File(jsonFilePath);
 
             if(jsonFile.exists()){
