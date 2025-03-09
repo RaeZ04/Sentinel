@@ -91,7 +91,6 @@ public class menu1Controller {
             }
         }
 
-
         //al iniciar carga todos las etiquetas con los nombres de las cuentas
         cargarItemsEnDropdown(dropdown);
 
