@@ -76,8 +76,10 @@ public class menu1Controller {
     @SuppressWarnings("unchecked")
     @FXML
     protected void initialize() {
+
         //comprobar existencia de JSON si no existe lo crea con el formato inicial
         File file = new File(rutaTemp);
+
         if (!file.exists()) {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -88,6 +90,17 @@ public class menu1Controller {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error Dialog");
                 alert.setHeaderText("Error al crear el archivo JSON");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            }
+        } else {
+            // desencriptar archivo
+            try {
+                utilesCifrado.decryptFile(rutaTemp);
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("Error al desencriptar el archivo");
                 alert.setContentText(e.getMessage());
                 alert.showAndWait();
             }
