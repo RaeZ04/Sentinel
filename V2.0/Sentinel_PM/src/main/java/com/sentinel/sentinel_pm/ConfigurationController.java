@@ -16,11 +16,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.File;
 import java.io.IOException;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
+import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
 
 public class ConfigurationController {
 
@@ -154,12 +154,21 @@ public class ConfigurationController {
                   objectMapper.writeValue(jsonFile, passRuta);
 
                   if (jsonFile.exists()) {
-                        System.out.println("json creado");
+                        // Cifrar el archivo JSON una vez creado
+                        utilesCifrado.encryptFile(jsonFile.getAbsolutePath());
+                        System.out.println("json cifrado");
                   } else {
-                        System.out.println("json no creado");
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Archivo no creado");
+                        alert.setContentText("El archivo JSON no se ha creado con éxito.");
+                        alert.showAndWait();
                   }
             } catch (IOException e) {
                   System.out.println("Error al crear el JSON: " + e.getMessage());
+                  e.printStackTrace();
+            } catch (Exception e) {
+                  System.out.println("Error al cifrar el JSON: " + e.getMessage());
                   e.printStackTrace();
             }
 

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
 
 public class menu1Controller {
 
@@ -65,6 +66,7 @@ public class menu1Controller {
     //--------------------RUTAS DE ARCHIVOS--------------------------------------//
     String ruta = obtenerRutaJSON();//obtener desde json
     String rutaTemp = ruta+"/acc.json";//obtener desde json
+    String rutaConfig = "config.json"; //ruta archivo configuracion
     //-------------------------------------------------------------------------------//
 
     @SuppressWarnings("rawtypes")
@@ -114,7 +116,16 @@ public class menu1Controller {
         });
 
         exitButton.setOnAction(event -> {
-            //AQUI ENCRIPTAR EL ARCHIVO CUANDO AL APP SE CIERRE
+            try {
+                utilesCifrado.encryptFile(rutaTemp);
+                utilesCifrado.encryptFile(rutaConfig);
+            } catch (Exception ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("Error al encriptar el archivo");
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
             Platform.exit();
         });
 

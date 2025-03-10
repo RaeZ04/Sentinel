@@ -1,10 +1,9 @@
 package com.sentinel.sentinel_pm;
 
 import java.io.File;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -17,6 +16,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import java.io.FileOutputStream;
 
 public class InicioController {
 
@@ -36,6 +36,10 @@ public class InicioController {
     private Label mensajeError;
 
     private AppInitializer appInitializer = new AppInitializer();
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------//
+private String rutaJSON = "config.json";
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------//
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------//
     @FXML
@@ -115,22 +119,29 @@ public class InicioController {
         }
     }
 
-    public String obtenerPasswdJSON(){
-        try{
-            // Leer la ruta desde el archivo JSON
-            String jsonFilePath = "config.json";
-            File jsonFile = new File(jsonFilePath);
+    //obtener ruta del JSON desencriptando en memoria, sin sobreescribir
+    public String obtenerPasswdJSON() {
+        try {
+            File jsonFile = new File(rutaJSON);
 
-            if(jsonFile.exists()){
+            if (jsonFile.exists()) {
+                // Desencriptar JSON
+                byte[] decryptedBytes = utilesCifrado.decryptFile(rutaJSON);
+                // Sobrescribir el archivo JSON con los bytes desencriptados
+                try (FileOutputStream fos = new FileOutputStream(rutaJSON)) {
+                    fos.write(decryptedBytes);
+                }
+
                 ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(jsonFile);
+                JsonNode jsonNode = objectMapper.readTree(decryptedBytes);
                 String passwd = jsonNode.get("passwd").asText();
                 return passwd;
             }
 
             return "";
 
-        }catch(Exception e){
+        } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
