@@ -39,3 +39,134 @@
     -fx-text-fill: white;
     -fx-caret-color: white;
 }
+
+/* Agregar al archivo InicioStyle.css */
+
+/* Estilos generales */
+.root {
+    -fx-font-family: "Tahoma";
+}
+
+/* Barra superior */
+.top-control-bar {
+    -fx-background-color: transparent;
+}
+
+/* Botones de ventana */
+.window-button {
+    -fx-background-color: #162031;
+    -fx-background-radius: 0;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+}
+
+#minimize:hover {
+    -fx-background-color: #1a2c3e;
+}
+
+#close:hover {
+    -fx-background-color: #dc4c4c;
+}
+
+/* Logo de la aplicación */
+.app-logo {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 5, 0, 0, 2);
+}
+
+/* Título y separador */
+#headerLabel {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 5, 0, 0, 2);
+    -fx-font-weight: bold;
+}
+
+.header-separator {
+    -fx-stroke: linear-gradient(to right, transparent, white, transparent);
+    -fx-stroke-width: 1.5;
+    -fx-opacity: 0.8;
+}
+
+/* Panel de configuración */
+#configPanel {
+    -fx-background-color: #1d2b3e;
+    -fx-background-radius: 12px;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 4);
+}
+
+/* Etiquetas de campos */
+.field-label {
+    -fx-text-fill: #b8c9e3;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Contenedor de inputs */
+.input-container {
+    -fx-spacing: 5;
+    -fx-alignment: center-left;
+}
+
+/* Campos de texto modernos */
+.modern-field {
+    -fx-background-color: #141e2c;
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-text-fill: white;
+    -fx-padding: 8px 12px;
+    -fx-font-size: 13px;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.5);
+}
+
+.modern-field:focused {
+    -fx-border-color: #3b5e9a;
+    -fx-border-width: 1.5px;
+    -fx-background-color: #182435;
+}
+
+/* Botón de búsqueda */
+.browse-button {
+    -fx-background-color: #223a5e;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+}
+
+.browse-button:hover {
+    -fx-background-color: #2d4b75;
+}
+
+.browse-button:pressed {
+    -fx-background-color: #1b304c;
+}
+
+/* Botón de acción principal */
+.action-button {
+    -fx-background-color: linear-gradient(to bottom right, #2e5c9e, #1a3b6d);
+    -fx-background-radius: 8px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 5, 0, 0, 2);
+    -fx-padding: 10px 20px;
+    -fx-graphic-text-gap: 10;
+}
+
+.action-button:hover {
+    -fx-background-color: linear-gradient(to bottom right, #3569b1, #214785);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 7, 0, 0, 3);
+}
+
+.action-button:pressed {
+    -fx-background-color: linear-gradient(to bottom right, #1e3c6e, #14294d);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 3, 0, 0, 1);
+}
+
+/* Etiqueta de versión */
+.version-label {
+    -fx-text-fill: #5b6f97;
+    -fx-opacity: 0.8;
+}
