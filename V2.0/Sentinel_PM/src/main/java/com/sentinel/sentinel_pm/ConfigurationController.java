@@ -21,6 +21,9 @@ import java.io.IOException;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
+import javafx.scene.Cursor;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
 
 public class ConfigurationController {
 
@@ -33,15 +36,14 @@ public class ConfigurationController {
       @FXML
       private TextField PasswdTextBox;
 
-
       @FXML
       private TextField rutaArchivoTextBox;
 
       @FXML
-      private Button botonGuardar;
+      private Button botonBuscarCarpeta;
 
       @FXML
-      private Button botonBuscarCarpeta;
+      private Button saveConf;
 
       // ----------------------------------------------------USOS DE BOTONES-------------------------------------------
       @FXML
@@ -49,8 +51,11 @@ public class ConfigurationController {
 
             File jsonFile = new File("config.json");
 
+            // Configurar efectos de hover para los botones
+            configureButtonEffects();
+
             //boton guardar para crear configuracion
-            botonGuardar.setOnAction(event -> {
+            saveConf.setOnAction(event -> {
 
                   // comprobacion de que ambos campos estan recogidos
                   if (PasswdTextBox.getText().trim().length() != 0 && rutaArchivoTextBox.getText().trim().length() != 0) {
@@ -131,6 +136,12 @@ public class ConfigurationController {
 
       }// ----------------------------------------------------FIN DE INITIALIZE---------------------------------------------------
 
+      // Método para configurar los efectos visuales de los botones
+      private void configureButtonEffects() {
+            // Configurar el cursor para los botones
+            saveConf.setCursor(Cursor.HAND);
+            botonBuscarCarpeta.setCursor(Cursor.HAND);
+      }
 
       // -------------------------------------------------------METODOS---------------------------------------------------------
       public void obtenerPasswd() {
@@ -179,7 +190,7 @@ public class ConfigurationController {
                   Scene scene = new Scene(root);
                   scene.setFill(Color.TRANSPARENT);
 
-                  Stage stage = (Stage) botonGuardar.getScene().getWindow();
+                  Stage stage = (Stage) saveConf.getScene().getWindow();
                   stage.setScene(scene);
                   stage.setResizable(false);
 

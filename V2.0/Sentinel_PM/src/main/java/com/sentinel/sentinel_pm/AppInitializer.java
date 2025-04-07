@@ -18,7 +18,7 @@ public class AppInitializer extends Application {
     private double xOffset = 0;
     private double yOffset = 0;
 
-        @Override
+    @Override
     public void start(@SuppressWarnings("exports") Stage stage) {
         try {
             // Leer la ruta desde el archivo JSON
@@ -27,16 +27,20 @@ public class AppInitializer extends Application {
             FXMLLoader fxmlLoader;
 
             // si el archivo existe, lee la ruta y redirige a inicio, si no a configuracion para crear el archivo JSON
-            if (jsonFile.exists()) {
+            if (jsonFile.exists() && jsonFile.length() > 0) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonNode = objectMapper.readTree(jsonFile);
-                String ruta = jsonNode.get("ruta").asText();
+                
+                // Verificar que el nodo ruta exista
+                if (jsonNode != null && jsonNode.has("ruta")) {
+                    String ruta = jsonNode.get("ruta").asText();
 
-                // Verificar que la ruta no sea nula o vacía
-                if (ruta != null && !ruta.isEmpty()) {
-
-                    fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
-
+                    // Verificar que la ruta no sea nula o vacía
+                    if (ruta != null && !ruta.isEmpty()) {
+                        fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+                    } else {
+                        fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
+                    }
                 } else {
                     fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
                 }
@@ -59,6 +63,7 @@ public class AppInitializer extends Application {
         }
     }
 
+    // Rest of your code remains the same
     public void changeScene(@SuppressWarnings("exports") Stage stage, String fxml) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(fxml));
