@@ -22,6 +22,8 @@ import javafx.util.Duration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
@@ -554,57 +556,122 @@ public class menu1Controller {
 
     //===============================METODOS=============================================================================//
     // Guardar Cuentas en el archivo JSON
-    public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField)
-        throws IOException {
-
+    public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField) throws IOException {
         // comprueba si existen elementos en el dropdown
         if (dropdownVar.getValue() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error Dialog");
-            alert.setHeaderText("No puedes añadir una cuenta a algo vacio");
+            alert.setHeaderText("No puedes añadir una cuenta a algo vacío");
             alert.showAndWait();
-        } else { // si existen elementos
-            File file = new File(rutaTemp);
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode;
-
-            // Leer el archivo JSON
-            if (file.exists()) {
-                rootNode = objectMapper.readTree(file);
-            } else {
-                rootNode = objectMapper.createObjectNode();
-            }
-
-            // Obtener el nodo de cuentas
-            ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
-
-            // Buscar si ya existe la clase en el JSON
-            boolean claseEncontrada = false;
-
-            for (JsonNode cuentaNode : cuentasNode) {
-                if (cuentaNode.has(dropdownVar.getValue())) {
-                    ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(dropdownVar.getValue());
+            return;
+        }
+    
+        if (usernameField == null || usernameField.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("El nombre de usuario no puede estar vacío");
+            alert.showAndWait();
+            return;
+        }
+        
+        File file = new File(rutaTemp);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(file);
+    
+        // Obtener el nodo de cuentas
+        ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+    
+        // Buscar si ya existe la clase en el JSON
+        boolean claseEncontrada = false;
+    
+        for (JsonNode cuentaNode : cuentasNode) {
+            if (cuentaNode.has(dropdownVar.getValue())) {
+                ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(dropdownVar.getValue());
+                
+                // Verificar si ya existe una cuenta con el mismo nombre de usuario
+                boolean cuentaExistente = false;
+                for (JsonNode cuenta : cuentasArray) {
+                    if (cuenta.has(usernameField)) {
+                        cuentaExistente = true;
+                        // Preguntar al usuario si desea sobrescribir
+                        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+                        confirmDialog.setTitle("Cuenta existente");
+                        confirmDialog.setHeaderText("Ya existe una cuenta con ese nombre de usuario");
+                        confirmDialog.setContentText("¿Desea sobrescribir la cuenta existente?");
+                        
+                        ButtonType buttonTypeYes = new ButtonType("Sí");
+                        ButtonType buttonTypeNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+                        
+                        confirmDialog.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+                        
+                        Optional<ButtonType> result = confirmDialog.showAndWait();
+                        if (result.isPresent() && result.get() == buttonTypeYes) {
+                            // Eliminar la cuenta existente
+                            for (int i = 0; i < cuentasArray.size(); i++) {
+                                if (cuentasArray.get(i).has(usernameField)) {
+                                    ((ObjectNode) cuentasArray.get(i)).put(usernameField, passwordField);
+                                    try {
+                                        // Escribir el archivo JSON actualizado
+                                        objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+                                        
+                                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                                        successAlert.setTitle("Éxito");
+                                        successAlert.setHeaderText("Cuenta actualizada correctamente");
+                                        successAlert.showAndWait();
+                                    } catch (IOException e) {
+                                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                                        errorAlert.setTitle("Error");
+                                        errorAlert.setHeaderText("Error al actualizar la cuenta");
+                                        errorAlert.setContentText(e.getMessage());
+                                        errorAlert.showAndWait();
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        return;
+                    }
+                }
+                
+                // Si no existe la cuenta, añadirla
+                if (!cuentaExistente) {
                     ObjectNode nuevaCuenta = objectMapper.createObjectNode();
                     nuevaCuenta.put(usernameField, passwordField);
                     cuentasArray.add(nuevaCuenta);
-                    claseEncontrada = true;
-                    break;
                 }
+                
+                claseEncontrada = true;
+                break;
             }
-
-            // Si no se encontró la clase, añadir una nueva
-            if (!claseEncontrada) {
-                ObjectNode nuevaClase = objectMapper.createObjectNode();
-                ArrayNode cuentasArray = objectMapper.createArrayNode();
-                ObjectNode nuevaCuenta = objectMapper.createObjectNode();
-                nuevaCuenta.put(usernameField, passwordField);
-                cuentasArray.add(nuevaCuenta);
-                nuevaClase.set(dropdownVar.getValue(), cuentasArray);
-                cuentasNode.add(nuevaClase);
-            }
-
-            // Escribir el archivo JSON actualizado
+        }
+    
+        // Si no se encontró la clase, añadir una nueva
+        if (!claseEncontrada) {
+            ObjectNode nuevaClase = objectMapper.createObjectNode();
+            ArrayNode cuentasArray = objectMapper.createArrayNode();
+            ObjectNode nuevaCuenta = objectMapper.createObjectNode();
+            nuevaCuenta.put(usernameField, passwordField);
+            cuentasArray.add(nuevaCuenta);
+            nuevaClase.set(dropdownVar.getValue(), cuentasArray);
+            cuentasNode.add(nuevaClase);
+        }
+    
+        try {
+            // Escribir el archivo JSON actualizado si no estamos sobrescribiendo
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+            
+            // Mostrar mensaje de éxito
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Éxito");
+            successAlert.setHeaderText("Cuenta guardada correctamente");
+            successAlert.showAndWait();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error Dialog");
+            alert.setHeaderText("Error al guardar la cuenta");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+            throw e; // Re-lanzar la excepción para que sea manejada por el llamador
         }
     }
 
