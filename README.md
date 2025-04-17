@@ -1,6 +1,6 @@
 # Sentinel Password Manager
 
-![Sentinel Logo](src/main/resources/com/sentinel/sentinel_pm/Media/iconoSentinelVectorizado-removebg-preview.png)
+![Sentinel Logo](src\main\resources\com\sentinel\sentinel_pm\Media/iconoSentinelVectorizado-removebg-preview.png)
 
 ## 📋 Descripción
 
