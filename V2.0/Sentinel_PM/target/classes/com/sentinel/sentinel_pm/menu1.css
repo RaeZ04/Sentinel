@@ -41,7 +41,7 @@
 }
 
 #scrollPane .viewport {
-    -fx-background-color: #28344c;;
+    -fx-background-color: #28344c;
     -fx-background-radius: 30;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
@@ -49,12 +49,57 @@
 
 #scrollPane {
     -fx-background-color: #28344c;
-    -fx-border-color: white;
-    -fx-border-width: 1px;
-    -fx-border-radius: 5px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0px;
+    -fx-border-radius: 10px;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-background-radius: 5;
+    -fx-background-radius: 10;
+    -fx-padding: 5;
+}
+
+/* Estilos personalizados para ScrollBar */
+.scroll-bar:vertical {
+    -fx-background-color: rgba(40, 52, 76, 0.6);
+    -fx-background-radius: 8px;
+    -fx-pref-width: 12px;
+}
+
+.scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8px;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(76, 159, 230, 0.6);
+    -fx-background-radius: 8px;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(76, 159, 230, 0.8);
+}
+
+.scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: rgba(76, 159, 230, 1.0);
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-padding: 0 10 0 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
 }
 
 #scrollPane .text {
@@ -62,7 +107,6 @@
     -fx-font-family: "Tahoma";
     -fx-font-size: 15px;
 }
-
 
 #scrollPane .flow-pane {
     -fx-border-color: transparent transparent white transparent;
@@ -79,4 +123,123 @@
     -fx-border-color: transparent transparent #ffffff transparent;
     -fx-border-width: 0 0 1 0;
     -fx-text-fill: #3b4a6b;
+}
+
+/* Estilos para elementos de cuenta en el ScrollPane */
+.account-item {
+    -fx-background-color: rgba(32, 43, 65, 0.7);
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0, 0, 2);
+    -fx-padding: 12px;
+}
+
+.account-item:hover {
+    -fx-background-color: rgba(45, 60, 85, 0.9);
+    -fx-border-color: rgba(255, 255, 255, 0.35);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0, 0, 3);
+}
+
+.account-label {
+    -fx-text-fill: white;
+    -fx-font-family: "Tahoma";
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+}
+
+.account-username {
+    -fx-text-fill: #4c9fe6;
+    -fx-font-family: "Tahoma Bold";
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.account-password {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-family: "Tahoma";
+    -fx-font-size: 14px;
+}
+
+.account-action-button {
+    -fx-background-color: rgba(59, 74, 107, 0.8);
+    -fx-background-radius: 6px;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-font-family: "Tahoma";
+    -fx-font-size: 12px;
+    -fx-padding: 5px 10px;
+}
+
+.account-action-button:hover {
+    -fx-background-color: rgba(76, 95, 132, 0.9);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 1);
+}
+
+.account-action-button:pressed {
+    -fx-background-color: rgba(49, 62, 89, 1);
+}
+
+.account-delete-button {
+    -fx-background-color: rgba(180, 60, 60, 0.8);
+}
+
+.account-delete-button:hover {
+    -fx-background-color: rgba(220, 76, 76, 0.9);
+}
+
+.account-delete-button:pressed {
+    -fx-background-color: rgba(150, 45, 45, 1);
+}
+
+.account-copy-button {
+    -fx-background-color: rgba(60, 120, 180, 0.8);
+}
+
+.account-copy-button:hover {
+    -fx-background-color: rgba(76, 136, 196, 0.9);
+}
+
+.account-copy-button:pressed {
+    -fx-background-color: rgba(45, 105, 165, 1);
+}
+
+.account-section-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Tahoma Bold";
+    -fx-font-size: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 2, 0, 0, 1);
+    -fx-padding: 0 0 5px 0;
+}
+
+.no-accounts-message {
+    -fx-text-fill: #b0b0b0;
+    -fx-font-family: "Tahoma";
+    -fx-font-size: 16px;
+    -fx-font-style: italic;
+    -fx-padding: 20px;
+    -fx-alignment: center;
+}
+
+/* Contenedor para todos los elementos de cuenta */
+.accounts-container {
+    -fx-spacing: 10;
+    -fx-padding: 15px;
+}
+
+/* Estilo para cuando se muestra el password */
+.password-revealed {
+    -fx-text-fill: #70ffb3;
+}
+
+/* Animaciones */
+.account-item-fade-in {
+    -fx-opacity: 0;
+    -fx-animation: fadein 0.3s ease-in forwards;
+}
+
+@keyframes fadein {
+    from { -fx-opacity: 0; }
+    to { -fx-opacity: 1; }
 }

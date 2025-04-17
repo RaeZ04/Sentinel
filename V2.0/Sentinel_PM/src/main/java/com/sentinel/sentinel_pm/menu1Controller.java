@@ -1,7 +1,9 @@
 package com.sentinel.sentinel_pm;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -10,9 +12,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -657,6 +664,7 @@ public class menu1Controller {
 
     // metodo para mostrar las contrasenas en el scroll pane central cuando se pulsa en mostrar (JSON)
     public void mostrarContrasenas(ComboBox<String> dropdownString) {
+        // Configurar el comportamiento del desplazamiento del ScrollPane
         scrollpane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             lastY = event.getY();
             scrollpane.setCursor(Cursor.CLOSED_HAND);
@@ -672,6 +680,17 @@ public class menu1Controller {
         });
 
         String opcionMostrar = dropdownString.getValue();
+        
+        // Si no hay clase seleccionada, mostrar mensaje
+        if (opcionMostrar == null) {
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Información", "Por favor, selecciona una clase primero");
+            return;
+        }
+
+        // Desactivar el desplazamiento horizontal de manera explícita (aplicar SIEMPRE al principio)
+        scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollpane.setFitToWidth(true);
+        scrollpane.setPannable(false);
 
         File file = new File(rutaTemp);
         try {
@@ -679,12 +698,56 @@ public class menu1Controller {
             JsonNode rootNode = objectMapper.readTree(file);
             JsonNode cuentasNode = rootNode.path("cuentas");
 
-            VBox vbox = new VBox();
-            vbox.setAlignment(Pos.CENTER);
-            vbox.setPadding(new Insets(10, 20, 10, 20));
-            vbox.setSpacing(10); // Añadir espacio entre los elementos del VBox
-            vbox.setMaxWidth(Double.MAX_VALUE);
-            vbox.setMinWidth(scrollpane.getWidth());//establecer el ancho del vbox que muestra las cuentas al ancho del scrollpane
+            // Crear un contenedor principal para todas las cuentas con estilos mejorados
+            VBox contenedorPrincipal = new VBox();
+            contenedorPrincipal.getStyleClass().add("accounts-container");
+            contenedorPrincipal.setAlignment(Pos.TOP_CENTER);
+            contenedorPrincipal.setPadding(new Insets(10));
+            contenedorPrincipal.setSpacing(15);
+            
+            // Establecer ancho FIJO para evitar el scroll horizontal
+            double anchoDisponible = scrollpane.getWidth() - 25; // Restamos para barra de scroll y margen
+            contenedorPrincipal.setMinWidth(anchoDisponible);
+            contenedorPrincipal.setPrefWidth(anchoDisponible);
+            contenedorPrincipal.setMaxWidth(anchoDisponible);
+            
+            // Crear un HBox para el título con un ícono o gráfico
+            HBox headerBox = new HBox();
+            headerBox.setAlignment(Pos.CENTER_LEFT);
+            headerBox.setSpacing(10);
+            headerBox.setPadding(new Insets(0, 0, 12, 0));
+            headerBox.setPrefWidth(anchoDisponible);
+            headerBox.setMaxWidth(anchoDisponible);
+            
+            // Añadir icono (puedes cambiarlo por cualquier otro de los disponibles en Media/)
+            try {
+                ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/com/sentinel/sentinel_pm/Media/icon1.png")));
+                icon.setFitHeight(24);
+                icon.setFitWidth(24);
+                headerBox.getChildren().add(icon);
+            } catch (Exception e) {
+                // Si no se puede cargar el icono, continuamos sin él
+            }
+            
+            // Añadir título (con alineación vertical ajustada)
+            Label tituloSeccion = new Label("Cuentas de " + opcionMostrar);
+            tituloSeccion.getStyleClass().add("account-section-title");
+            
+            // Ajustar la alineación vertical del texto con el icono usando propiedades de alineación directamente
+            headerBox.setAlignment(Pos.CENTER_LEFT);
+            
+            // Crear un contenedor para ajustar el título verticalmente
+            StackPane titleContainer = new StackPane(tituloSeccion);
+            titleContainer.setAlignment(Pos.CENTER_LEFT);
+            titleContainer.setPadding(new Insets(5, 0, 0, 0));
+            
+            headerBox.getChildren().add(titleContainer);
+            
+            // Añadir el header al contenedor principal
+            contenedorPrincipal.getChildren().add(headerBox);
+            
+            // Añadir un borde inferior sutil (reemplaza el separador)
+            headerBox.setStyle("-fx-border-color: transparent transparent rgba(255,255,255,0.3) transparent; -fx-border-width: 0 0 1px 0;");
 
             boolean encontrado = false;
 
@@ -693,17 +756,101 @@ public class menu1Controller {
                     if (cuentaNode.has(opcionMostrar)) {
                         encontrado = true;
                         ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(opcionMostrar);
+                        
+                        // Si no hay cuentas, mostrar un mensaje
+                        if (cuentasArray.size() == 0) {
+                            Label sinCuentas = new Label("No hay cuentas guardadas en esta clase");
+                            sinCuentas.getStyleClass().add("no-accounts-message");
+                            contenedorPrincipal.getChildren().add(sinCuentas);
+                        }
+                        
+                        // Contador para animación escalonada
+                        final int[] contador = {0};
+                        
                         for (JsonNode cuenta : cuentasArray) {
                             cuenta.fields().forEachRemaining(entry -> {
                                 String usuario = entry.getKey();
                                 String contrasena = entry.getValue().asText();
-                                String texto = usuario + ": " + contrasena;
-
-                                Label label = new Label(texto);
-                                Button eliminarButton = new Button("Eliminar");
-                                eliminarButton.setStyle(
-                                        "-fx-background-color: #3b4a6b; -fx-text-fill: white; -fx-border-radius: 5px;");
-                                eliminarButton.setOnAction(event -> {
+                                
+                                // Crear un ítem de cuenta con efecto de tarjeta
+                                VBox itemCuenta = new VBox();
+                                itemCuenta.getStyleClass().add("account-item");
+                                itemCuenta.setMaxWidth(anchoDisponible);
+                                itemCuenta.setPrefWidth(anchoDisponible);
+                                itemCuenta.setSpacing(8);
+                                
+                                // Aplicar animación de entrada con retardo escalonado
+                                // basado en la posición del elemento
+                                contador[0]++;
+                                PauseTransition delay = new PauseTransition(Duration.millis(contador[0] * 50));
+                                delay.setOnFinished(event -> {
+                                    FadeTransition fadeIn = new FadeTransition(Duration.millis(200), itemCuenta);
+                                    fadeIn.setFromValue(0);
+                                    fadeIn.setToValue(1);
+                                    fadeIn.play();
+                                });
+                                itemCuenta.setOpacity(0);
+                                delay.play();
+                                
+                                // Nombre de usuario destacado
+                                Label usuarioLabel = new Label("Usuario:");
+                                usuarioLabel.getStyleClass().add("account-label");
+                                
+                                Label usuarioValor = new Label(usuario);
+                                usuarioValor.getStyleClass().add("account-username");
+                                
+                                HBox usuarioContainer = new HBox(10);
+                                usuarioContainer.setAlignment(Pos.CENTER_LEFT);
+                                usuarioContainer.getChildren().addAll(usuarioLabel, usuarioValor);
+                                
+                                // Contraseña con opción para mostrar/ocultar
+                                Label contrasenaLabel = new Label("Contraseña:");
+                                contrasenaLabel.getStyleClass().add("account-label");
+                                
+                                Label contrasenaValor = new Label("••••••••");
+                                contrasenaValor.getStyleClass().add("account-password");
+                                
+                                ToggleButton mostrarContrasenaBtn = new ToggleButton("Mostrar");
+                                mostrarContrasenaBtn.getStyleClass().add("account-action-button");
+                                mostrarContrasenaBtn.setCursor(Cursor.HAND);
+                                mostrarContrasenaBtn.setOnAction(event -> {
+                                    if (mostrarContrasenaBtn.isSelected()) {
+                                        contrasenaValor.setText(contrasena);
+                                        contrasenaValor.getStyleClass().add("password-revealed");
+                                        mostrarContrasenaBtn.setText("Ocultar");
+                                    } else {
+                                        contrasenaValor.setText("••••••••");
+                                        contrasenaValor.getStyleClass().remove("password-revealed");
+                                        mostrarContrasenaBtn.setText("Mostrar");
+                                    }
+                                });
+                                
+                                HBox contrasenaContainer = new HBox(10);
+                                contrasenaContainer.setAlignment(Pos.CENTER_LEFT);
+                                contrasenaContainer.getChildren().addAll(contrasenaLabel, contrasenaValor, mostrarContrasenaBtn);
+                                HBox.setHgrow(contrasenaValor, Priority.ALWAYS);
+                                
+                                // Botones de acción
+                                Button copiarContrasenaBtn = new Button("Copiar");
+                                copiarContrasenaBtn.getStyleClass().addAll("account-action-button", "account-copy-button");
+                                copiarContrasenaBtn.setCursor(Cursor.HAND);
+                                copiarContrasenaBtn.setOnAction(event -> {
+                                    final Clipboard clipboard = Clipboard.getSystemClipboard();
+                                    final ClipboardContent content = new ClipboardContent();
+                                    content.putString(contrasena);
+                                    clipboard.setContent(content);
+                                    
+                                    // Cambiar temporalmente el texto del botón para confirmar
+                                    copiarContrasenaBtn.setText("¡Copiado!");
+                                    PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
+                                    pause.setOnFinished(e -> copiarContrasenaBtn.setText("Copiar"));
+                                    pause.play();
+                                });
+                                
+                                Button eliminarBtn = new Button("Eliminar");
+                                eliminarBtn.getStyleClass().addAll("account-action-button", "account-delete-button");
+                                eliminarBtn.setCursor(Cursor.HAND);
+                                eliminarBtn.setOnAction(event -> {
                                     Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
                                     confirmDialog.setTitle("Confirmación de eliminación");
                                     confirmDialog.setHeaderText("¿Estás seguro de que deseas eliminar esta cuenta?");
@@ -711,26 +858,31 @@ public class menu1Controller {
 
                                     ButtonType buttonTypeYes = new ButtonType("Sí");
                                     ButtonType buttonTypeNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-
                                     confirmDialog.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
 
                                     confirmDialog.showAndWait().ifPresent(response -> {
                                         if (response == buttonTypeYes) {
-                                            borrarCuentas(opcionMostrar, usuario);
-                                            mostrarContrasenas(dropdownString);
+                                            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), itemCuenta);
+                                            fadeOut.setFromValue(1.0);
+                                            fadeOut.setToValue(0.0);
+                                            fadeOut.setOnFinished(e -> {
+                                                borrarCuentas(opcionMostrar, usuario);
+                                                mostrarContrasenas(dropdownString);
+                                            });
+                                            fadeOut.play();
                                         }
                                     });
                                 });
-
-                                HBox hbox = new HBox(10); // Crear un HBox para contener el label y el botón
-                                hbox.setAlignment(Pos.CENTER);
-                                hbox.getChildren().addAll(label, eliminarButton);
-                                hbox.setStyle(
-                                        "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.5) transparent; -fx-border-width: 0 0 1px 0;");
-                                hbox.setPadding(new Insets(12, 0, 12, 0)); // Agregar padding inferior de 15px
-                                hbox.setMaxWidth(Double.MAX_VALUE); // Extender el HBox hasta los laterales
-                                HBox.setHgrow(label, Priority.ALWAYS); // Permitir que el label crezca
-                                vbox.getChildren().add(hbox); // Agregar el HBox al VBox
+                                
+                                HBox botonesContainer = new HBox(10);
+                                botonesContainer.setAlignment(Pos.CENTER_RIGHT);
+                                botonesContainer.getChildren().addAll(copiarContrasenaBtn, eliminarBtn);
+                                
+                                // Añadir todos los elementos al ítem de cuenta
+                                itemCuenta.getChildren().addAll(usuarioContainer, contrasenaContainer, botonesContainer);
+                                
+                                // Añadir el ítem al contenedor principal
+                                contenedorPrincipal.getChildren().add(itemCuenta);
                             });
                         }
                         break;
@@ -739,20 +891,22 @@ public class menu1Controller {
             }
 
             if (!encontrado) {
-                mostrarAlerta(Alert.AlertType.INFORMATION, "Información", "No se encontraron contraseñas para la clase seleccionada");
+                Label noEncontrado = new Label("No se encontraron cuentas para la clase seleccionada");
+                noEncontrado.getStyleClass().add("no-accounts-message");
+                contenedorPrincipal.getChildren().add(noEncontrado);
             }
 
-            // Desactivar el desplazamiento horizontal
-            scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            // Aplicar configuraciones al ScrollPane
             scrollpane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            
+            // Asegurar que no hay scroll horizontal
+            StackPane centeredPane = new StackPane(contenedorPrincipal);
+            centeredPane.setAlignment(Pos.TOP_CENTER);
+            centeredPane.setMaxWidth(anchoDisponible);
+            centeredPane.setPrefWidth(anchoDisponible);
+            centeredPane.setMinWidth(anchoDisponible);
 
-            // Limitar el ancho del VBox al ancho del ScrollPane
-            vbox.setMaxWidth(scrollpane.getWidth());
-
-            // Centrar el VBox dentro del ScrollPane
-            StackPane centeredPane = new StackPane(vbox);
-            centeredPane.setAlignment(Pos.TOP_CENTER); // Asegurar que el VBox se alinee en la parte superior
-            centeredPane.setMaxWidth(Double.MAX_VALUE); // Extender el StackPane hasta los laterales
+            // Agregar el contenedor al ScrollPane
             scrollpane.setContent(centeredPane);
 
         } catch (IOException e) {
