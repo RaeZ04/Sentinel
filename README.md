@@ -28,7 +28,7 @@ java -jar Sentinel-PM-2.3.jar
 1. Clona el repositorio:
 
 ```bash
-git clone https://github.com/tu-usuario/Sentinel-Password-Manager.git
+git clone https://github.com/RaeZ04/Sentinel-Password-Manager.git
 ```
 
 2. Navega al directorio del proyecto:
