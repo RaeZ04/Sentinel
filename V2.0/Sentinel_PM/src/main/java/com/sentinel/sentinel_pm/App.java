@@ -1,13 +1,11 @@
 package com.sentinel.sentinel_pm;
 
 /**
- * Punto de entrada alternativo para la aplicación.
- * Este archivo se mantiene por compatibilidad, pero toda la lógica
- * de inicialización ahora está en AppInitializer.
+ * Punto de entrada principal para la aplicación.
  */
 public class App {
     public static void main(String[] args) {
-        // Delegar la inicialización al AppInitializer
+        // Invocamos directamente el lanzamiento de la aplicación JavaFX
         AppInitializer.main(args);
     }
 }
