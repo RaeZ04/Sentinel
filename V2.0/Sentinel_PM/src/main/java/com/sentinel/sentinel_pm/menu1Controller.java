@@ -6,10 +6,11 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -239,136 +240,68 @@ public class menu1Controller {
         añadirCuenta.setOnMouseEntered(event -> añadirCuenta.getScene().setCursor(Cursor.HAND));
         añadirCuenta.setOnMouseExited(event -> añadirCuenta.getScene().setCursor(Cursor.DEFAULT));
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Botón Actualizar Contraseña - Usar el nuevo FXML
         actualizarContraseña.setOnAction(evento -> {
-            Stage ventanaActualizar = new Stage();
-            ventanaActualizar.initStyle(StageStyle.UNDECORATED); // Remove the title bar
-            ventanaActualizar.setWidth(370);
-            ventanaActualizar.setHeight(230);
-            ventanaActualizar.setResizable(false);
-
-            // Crear desplegable
-            ComboBox<String> dropdownAct = new ComboBox<>();
-            // Establecer posición del desplegable
-            dropdownAct.setLayoutX(20);
-            dropdownAct.setLayoutY(50);
-            dropdownAct.setPromptText("Selecciona una clase");
-            dropdownAct.setPrefWidth(160);
-
-            cargarItemsEnDropdown(dropdownAct);
-
-            // crear segundo desplegable
-            ComboBox<String> dropdownCuentasAct = new ComboBox<>();
-            dropdownCuentasAct.setLayoutX(190);
-            dropdownCuentasAct.setLayoutY(50);
-            dropdownCuentasAct.setPromptText("Selecciona una cuenta");
-            dropdownCuentasAct.setPrefWidth(160);
-
-            Label label = new Label("Usuario:");
-            label.setTextFill(Color.WHITE); // Set the text color to white
-            TextField textField = new TextField();
-            textField.setStyle(
-                    "-fx-background-color: transparent; -fx-border-color: transparent transparent white transparent; -fx-text-fill: white;");
-
-            // Establecer posición del campo de texto
-            label.setLayoutX(60);
-            label.setLayoutY(100);
-
-            // Establecer posición del campo de texto
-            textField.setLayoutX(115);
-            textField.setLayoutY(90);
-            textField.setMinWidth(200);
-
-            Label labelContrasena = new Label("Contraseña:");
-            labelContrasena.setTextFill(Color.WHITE); // Set the text color to white
-            TextField textFieldContrasena = new TextField();
-            textFieldContrasena.setStyle(
-                    "-fx-background-color: transparent; -fx-border-color: transparent transparent white transparent; -fx-text-fill: white;");
-            // Establecer posición del campo de texto
-            labelContrasena.setLayoutX(41);
-            labelContrasena.setLayoutY(140);
-
-            // Establecer posición del campo de texto
-            textFieldContrasena.setLayoutX(115);
-            textFieldContrasena.setLayoutY(130);
-            textFieldContrasena.setMinWidth(200);
-
-            // boton aceptar
-            Button aceptar = new Button("Aceptar");
-            aceptar.setLayoutX(110);
-            aceptar.setLayoutY(190);
-            aceptar.setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;");
-            aceptar.setCursor(Cursor.HAND);
-            aceptar.setOnMouseEntered(event -> aceptar
-                    .setStyle("-fx-background-color: #1a2a3a; -fx-text-fill: white; -fx-border-radius: 20px;"));
-            aceptar.setOnMouseExited(event -> aceptar
-                    .setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;"));
-
-            // boton cancelar
-            Button cancelar = new Button("Cancelar");
-            cancelar.setLayoutX(190);
-            cancelar.setLayoutY(190);
-            cancelar.setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;");
-            cancelar.setCursor(Cursor.HAND);
-            cancelar.setOnMouseEntered(event -> cancelar
-                    .setStyle("-fx-background-color: #1a2a3a; -fx-text-fill: white; -fx-border-radius: 20px;"));
-            cancelar.setOnMouseExited(event -> cancelar
-                    .setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;"));
-
-            // funcion boton aceptar
-            aceptar.setOnAction(event -> {
-                actualizarContraseña(dropdownAct, dropdownCuentasAct, textField, textFieldContrasena);
-                ventanaActualizar.close();
-            });
-
-            // funcion boton cancelar
-            cancelar.setOnAction(event -> {
-                ventanaActualizar.close();
-            });
-
-            Group root = new Group();
-            root.getChildren().add(dropdownAct);
-            root.getChildren().add(dropdownCuentasAct);
-            root.getChildren().addAll(label, textField);
-            root.getChildren().addAll(labelContrasena, textFieldContrasena);
-            root.getChildren().add(aceptar);
-            root.getChildren().add(cancelar);
-
-            // Create a pane with a white border
-            Pane borderedPane = new Pane(root);
-            borderedPane.setStyle(
-                    "-fx-border-color: white; -fx-border-width: 2; -fx-background-color: #28344c; -fx-border-radius: 20px;");
-
-            Scene scene = new Scene(borderedPane);
-            scene.setFill(Color.web("#28344c"));
-            ventanaActualizar.setScene(scene);
-
-            // Create a non-focusable container
-            Pane nonFocusableContainer = new Pane();
-            nonFocusableContainer.setFocusTraversable(true);
-            root.getChildren().add(nonFocusableContainer);
-
-            ventanaActualizar.show();
-
-            // Give focus to the non-focusable container
-            nonFocusableContainer.requestFocus();
-
-            // Make the window draggable
-            final double[] xOffset = new double[1];
-            final double[] yOffset = new double[1];
-            scene.setOnMousePressed(event -> {
-                xOffset[0] = event.getSceneX();
-                yOffset[0] = event.getSceneY();
-            });
-            scene.setOnMouseDragged(event -> {
-                ventanaActualizar.setX(event.getScreenX() - xOffset[0]);
-                ventanaActualizar.setY(event.getScreenY() - yOffset[0]);
-            });
-
-            dropdownAct.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-                if (newValue != null) {
-                    cargarItemsEnDropdownMinusculas(dropdownCuentasAct, dropdownAct);
-                }
-            });
+            try {
+                // Cargar el archivo FXML
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/sentinel/sentinel_pm/ActualizarPasswordPopup.fxml"));
+                Parent root = loader.load();
+                
+                // Crear la escena y el escenario
+                Scene scene = new Scene(root);
+                scene.setFill(Color.TRANSPARENT);
+                
+                Stage popupStage = new Stage();
+                popupStage.initStyle(StageStyle.TRANSPARENT);
+                popupStage.setScene(scene);
+                popupStage.setResizable(false);
+                
+                // Hacer que la ventana sea arrastrable
+                final double[] xOffset = new double[1];
+                final double[] yOffset = new double[1];
+                root.setOnMousePressed(event -> {
+                    xOffset[0] = event.getSceneX();
+                    yOffset[0] = event.getSceneY();
+                });
+                root.setOnMouseDragged(event -> {
+                    popupStage.setX(event.getScreenX() - xOffset[0]);
+                    popupStage.setY(event.getScreenY() - yOffset[0]);
+                });
+                
+                // Obtener referencias a componentes del FXML
+                ComboBox<String> clasesComboBox = (ComboBox<String>) scene.lookup("#clasesComboBox");
+                ComboBox<String> cuentasComboBox = (ComboBox<String>) scene.lookup("#cuentasComboBox");
+                TextField nuevoUsuarioField = (TextField) scene.lookup("#nuevoUsuarioField");
+                TextField nuevaContrasenaField = (TextField) scene.lookup("#nuevaContrasenaField");
+                Button aceptarButton = (Button) scene.lookup("#aceptarButton");
+                Button cancelarButton = (Button) scene.lookup("#cancelarButton");
+                
+                // Cargar datos en los combobox
+                cargarItemsEnDropdown(clasesComboBox);
+                
+                // Añadir comportamiento a los combobox
+                clasesComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+                    if (newValue != null) {
+                        cargarItemsEnDropdownMinusculas(cuentasComboBox, clasesComboBox);
+                    }
+                });
+                
+                // Configurar comportamiento para los botones
+                aceptarButton.setOnAction(event -> {
+                    actualizarContraseña(clasesComboBox, cuentasComboBox, nuevoUsuarioField, nuevaContrasenaField);
+                    popupStage.close();
+                });
+                
+                cancelarButton.setOnAction(event -> {
+                    popupStage.close();
+                });
+                
+                popupStage.show();
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al cargar la ventana de actualizar contraseña: " + e.getMessage());
+            }
         });
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         dropdown.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
@@ -377,141 +310,70 @@ public class menu1Controller {
             }
         });
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Añadir Cuenta
+        // Botón Añadir Cuenta - Usar el nuevo FXML
         añadirCuenta.setOnAction(d -> {
-            Stage tempStage = new Stage();
-            tempStage.initStyle(StageStyle.UNDECORATED); // Remove the title bar
-            tempStage.setWidth(400);
-            tempStage.setHeight(300);
-            tempStage.setResizable(false);
-
-            // Crear desplegable
-            ComboBox<String> dropdown = new ComboBox<>();
-
-            // Establecer posición del desplegable
-            dropdown.setLayoutX(90);
-            dropdown.setLayoutY(35);
-            dropdown.setPromptText("Selecciona una clase");
-            dropdown.setPrefWidth(200);
-
-            cargarItemsEnDropdown(dropdown);
-
-            Label label = new Label("Usuario:");
-            label.setTextFill(Color.WHITE); // Set label color to white
-            TextField textField = new TextField();
-            // Establecer posición del campo de texto
-            label.setLayoutX(48);
-            label.setLayoutY(90);
-
-            // Establecer posición del campo de texto
-            textField.setLayoutX(50);
-            textField.setLayoutY(110);
-
-            textField.setStyle(
-                    "-fx-background-color: transparent; -fx-border-color: transparent transparent white transparent; -fx-text-fill: white; -fx-pref-width: 250;");
-
-            Label labelContrasena = new Label("Contraseña:");
-            labelContrasena.setTextFill(Color.WHITE); // Set label color to white
-            TextField textFieldContrasena = new TextField();
-            textFieldContrasena.setStyle(
-                    "-fx-background-color: transparent; -fx-border-color: transparent transparent white transparent; -fx-text-fill: white; -fx-pref-width: 250;");
-
-            // Establecer posición del campo de texto
-            labelContrasena.setLayoutX(48);
-            labelContrasena.setLayoutY(160);
-
-            // Establecer posición del campo de texto
-            textFieldContrasena.setLayoutX(50);
-            textFieldContrasena.setLayoutY(175);
-
-            // Botón para generar contraseña aleatoria
-            Button generarPassButton = new Button("Generar");
-            generarPassButton.setLayoutX(310);
-            generarPassButton.setLayoutY(175);
-            generarPassButton.setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;");
-            generarPassButton.setCursor(Cursor.HAND);
-            generarPassButton.setOnMouseEntered(event -> generarPassButton
-                    .setStyle("-fx-background-color: #1a2a3a; -fx-text-fill: white; -fx-border-radius: 20px;"));
-            generarPassButton.setOnMouseExited(event -> generarPassButton
-                    .setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;"));
-
-            // Evento del botón para generar contraseña aleatoria
-            generarPassButton.setOnAction(event -> {
-                String passAleatoria = generarPassAleatoria();
-                textFieldContrasena.setText(passAleatoria);
-            });
-
-            /////////////////////////////////////////// BOTONES ACEPTAR Y
-            /////////////////////////////////////////// CANCELAR////////////////////////////////////////
-            Button aceptar = new Button("Aceptar");
-            aceptar.setLayoutX(110);
-            aceptar.setLayoutY(250);
-            aceptar.setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;");
-            aceptar.setCursor(Cursor.HAND);
-            aceptar.setOnMouseEntered(event -> aceptar
-                    .setStyle("-fx-background-color: #1a2a3a; -fx-text-fill: white; -fx-border-radius: 20px;"));
-            aceptar.setOnMouseExited(event -> aceptar
-                    .setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;"));
-
-            // boton cancelar
-            Button cancelar = new Button("Cancelar");
-            cancelar.setLayoutX(190);
-            cancelar.setLayoutY(250);
-            cancelar.setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;");
-            cancelar.setCursor(Cursor.HAND);
-            cancelar.setOnMouseEntered(event -> cancelar
-                    .setStyle("-fx-background-color: #1a2a3a; -fx-text-fill: white; -fx-border-radius: 20px;"));
-            cancelar.setOnMouseExited(event -> cancelar
-                    .setStyle("-fx-background-color: #162031; -fx-text-fill: white; -fx-border-radius: 20px;"));
-
-            // evento del boton
-            aceptar.setOnAction(event -> {
-                try {
-                    guardarCuentas(dropdown, textField.getText(), textFieldContrasena.getText());
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-                tempStage.close();
-            });
-
-            cancelar.setOnAction(event -> {
-                tempStage.close();
-            });
-
-            // Agregar cosas a ventana temporal
-            Group root = new Group();
-            root.getChildren().add(dropdown);
-            root.getChildren().addAll(label, textField);
-            root.getChildren().addAll(labelContrasena, textFieldContrasena);
-            root.getChildren().add(generarPassButton); // Asegúrate de agregar el botón al Group
-            root.getChildren().add(aceptar);
-            root.getChildren().add(cancelar);
-
-            // Request focus on the root to remove focus from other elements
-            Platform.runLater(() -> root.requestFocus());
-
-            Pane borderedPane = new Pane(root);
-            borderedPane.setStyle(
-                    "-fx-border-color: white; -fx-border-width: 2; -fx-background-color: #28344c; -fx-border-radius: 20px;");
-
-            Scene scene = new Scene(borderedPane);
-            scene.setFill(Color.web("#28344c"));
-            tempStage.setScene(scene);
-
-            tempStage.setScene(scene);
-            tempStage.show();
-
-            // Make the window draggable
-            final double[] xOffset = new double[1];
-            final double[] yOffset = new double[1];
-            scene.setOnMousePressed(event -> {
-                xOffset[0] = event.getSceneX();
-                yOffset[0] = event.getSceneY();
-            });
-            scene.setOnMouseDragged(event -> {
-                tempStage.setX(event.getScreenX() - xOffset[0]);
-                tempStage.setY(event.getScreenY() - yOffset[0]);
-            });
+            try {
+                // Cargar el archivo FXML
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/sentinel/sentinel_pm/AnadirCuentaPopup.fxml"));
+                Parent root = loader.load();
+                
+                // Crear la escena y el escenario
+                Scene scene = new Scene(root);
+                scene.setFill(Color.TRANSPARENT);
+                
+                Stage popupStage = new Stage();
+                popupStage.initStyle(StageStyle.TRANSPARENT);
+                popupStage.setScene(scene);
+                popupStage.setResizable(false);
+                
+                // Hacer que la ventana sea arrastrable
+                final double[] xOffset = new double[1];
+                final double[] yOffset = new double[1];
+                root.setOnMousePressed(event -> {
+                    xOffset[0] = event.getSceneX();
+                    yOffset[0] = event.getSceneY();
+                });
+                root.setOnMouseDragged(event -> {
+                    popupStage.setX(event.getScreenX() - xOffset[0]);
+                    popupStage.setY(event.getScreenY() - yOffset[0]);
+                });
+                
+                // Obtener referencias a componentes del FXML
+                ComboBox<String> clasesComboBox = (ComboBox<String>) scene.lookup("#clasesComboBox");
+                TextField usuarioField = (TextField) scene.lookup("#usuarioField");
+                TextField contrasenaField = (TextField) scene.lookup("#contrasenaField");
+                Button generarButton = (Button) scene.lookup("#generarButton");
+                Button aceptarButton = (Button) scene.lookup("#aceptarButton");
+                Button cancelarButton = (Button) scene.lookup("#cancelarButton");
+                
+                // Cargar datos en el combobox
+                cargarItemsEnDropdown(clasesComboBox);
+                
+                // Configurar comportamiento para los botones
+                generarButton.setOnAction(event -> {
+                    contrasenaField.setText(generarPassAleatoria());
+                });
+                
+                aceptarButton.setOnAction(event -> {
+                    try {
+                        guardarCuentas(clasesComboBox, usuarioField.getText(), contrasenaField.getText());
+                        popupStage.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al guardar la cuenta: " + e.getMessage());
+                    }
+                });
+                
+                cancelarButton.setOnAction(event -> {
+                    popupStage.close();
+                });
+                
+                popupStage.show();
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al cargar la ventana de añadir cuenta: " + e.getMessage());
+            }
         });
     };
     //================================FIN DE INITIALIZE=======================================================================//
@@ -782,6 +644,9 @@ public class menu1Controller {
 
             // Escribir el archivo JSON actualizado
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
+            
+            // Mostrar mensaje de éxito
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Contraseña actualizada correctamente");
 
         } catch (FileNotFoundException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Archivo JSON no encontrado: " + e.getMessage());
@@ -1017,14 +882,37 @@ public class menu1Controller {
 
     // Función para generar una contraseña aleatoria
     private String generarPassAleatoria() {
-        int length = 10;
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+        int length = 12; // Aumentar la longitud a 12 caracteres para mayor seguridad
+        String mayusculas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String minusculas = "abcdefghijklmnopqrstuvwxyz";
+        String numeros = "0123456789";
+        String especiales = "!@#$%^&*()_-+=<>?";
+        String chars = mayusculas + minusculas + numeros + especiales;
+        
         StringBuilder password = new StringBuilder();
-        for (int i = 0; i < length; i++) {
+        
+        // Asegurarse de incluir al menos un carácter de cada tipo
+        password.append(mayusculas.charAt((int) (Math.random() * mayusculas.length())));
+        password.append(minusculas.charAt((int) (Math.random() * minusculas.length())));
+        password.append(numeros.charAt((int) (Math.random() * numeros.length())));
+        password.append(especiales.charAt((int) (Math.random() * especiales.length())));
+        
+        // Completar el resto de la contraseña
+        for (int i = 4; i < length; i++) {
             int index = (int) (Math.random() * chars.length());
             password.append(chars.charAt(index));
         }
-        return password.toString();
+        
+        // Mezclar los caracteres
+        char[] passwordArray = password.toString().toCharArray();
+        for (int i = 0; i < passwordArray.length; i++) {
+            int j = (int) (Math.random() * passwordArray.length);
+            char temp = passwordArray[i];
+            passwordArray[i] = passwordArray[j];
+            passwordArray[j] = temp;
+        }
+        
+        return new String(passwordArray);
     }
 
     //=============================== FIN METODOS=========================================================================//

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane styleClass="popup-base" prefHeight="380.0" prefWidth="450.0" stylesheets="@PopupStyle.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox spacing="15.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+         <children>
+            <!-- Título -->
+            <Label styleClass="popup-title" text="Añadir Nueva Cuenta">
+               <font>
+                  <Font name="Tahoma Bold" size="18.0" />
+               </font>
+               <effect>
+                  <DropShadow color="rgba(0, 0, 0, 0.4)" height="2" radius="0.5" width="0" />
+               </effect>
+            </Label>
+
+            <!-- Separador -->
+            <Separator styleClass="popup-separator" />
+
+            <!-- Selección de clase -->
+            <VBox spacing="5.0" styleClass="popup-form-group">
+               <children>
+                  <Label styleClass="popup-label" text="Selecciona la clase donde añadir la cuenta:" />
+                  <ComboBox fx:id="clasesComboBox" maxWidth="1.7976931348623157E308" prefHeight="40.0" promptText="Selecciona una clase" styleClass="popup-combo-box" />
+               </children>
+            </VBox>
+
+            <!-- Campos para nueva cuenta -->
+            <VBox spacing="15.0">
+               <children>
+                  <VBox spacing="5.0" styleClass="popup-form-group">
+                     <children>
+                        <Label styleClass="popup-label" text="Usuario:" />
+                        <TextField fx:id="usuarioField" styleClass="popup-text-field" />
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="5.0" styleClass="popup-form-group">
+                     <children>
+                        <Label styleClass="popup-label" text="Contraseña:" />
+                        <HBox spacing="10.0">
+                           <children>
+                              <TextField fx:id="contrasenaField" HBox.hgrow="ALWAYS" styleClass="popup-text-field" />
+                              <Button fx:id="generarButton" styleClass="popup-button, popup-button-generate" text="Generar">
+                                 <HBox.margin>
+                                    <Insets top="1.0" />
+                                 </HBox.margin>
+                              </Button>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </VBox>
+
+            <!-- Botones -->
+            <HBox alignment="CENTER" spacing="15.0">
+               <children>
+                  <Button fx:id="aceptarButton" styleClass="popup-button, popup-button-primary" text="Guardar" />
+                  <Button fx:id="cancelarButton" styleClass="popup-button" text="Cancelar" />
+               </children>
+               <padding>
+                  <Insets top="20.0" />
+               </padding>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
