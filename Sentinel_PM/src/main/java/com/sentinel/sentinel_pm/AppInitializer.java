@@ -4,6 +4,7 @@ import com.sentinel.sentinel_pm.config.ConfigManager;
 import com.sentinel.sentinel_pm.entidadesJson.passRuta;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -105,6 +106,16 @@ public class AppInitializer extends Application {
     }
 
     public static void main(String[] args) {
+        // Aseguramos que cualquier excepción en el hilo de JavaFX se registre
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            System.err.println("Error no capturado en thread: " + thread.getName());
+            throwable.printStackTrace();
+        });
+        
+        // Configuramos el manejo de errores en el hilo de la UI de JavaFX
+        Platform.startup(() -> {});
+        Platform.setImplicitExit(true);
+        
         launch(args);
     }
 }
