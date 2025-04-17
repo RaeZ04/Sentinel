@@ -1,0 +1,41 @@
+/* Estilo para el botón de guardar */
+.save-button {
+    -fx-background-color: linear-gradient(to bottom right, #2e5c9e, #1a3b6d);
+    -fx-background-radius: 8px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-font-size: 15px;
+    -fx-font-family: "Tahoma Bold";
+}
+
+/* Mantiene el mismo tamaño de texto al hacer hover */
+.save-button:hover {
+    -fx-background-color: linear-gradient(to bottom right, #3569b1, #214785);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0, 0, 3);
+    -fx-font-size: 15px;
+    -fx-font-family: "Tahoma Bold";
+}
+
+/* Estado al hacer clic */
+.save-button:pressed {
+    -fx-background-color: linear-gradient(to bottom right, #1e3c6e, #14294d);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 3, 0, 0, 1);
+    -fx-font-size: 15px;
+    -fx-font-family: "Tahoma Bold";
+}
+
+/* Estilo para el botón de buscar carpeta */
+.browse-button {
+    -fx-background-color: #23324d;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.browse-button:hover {
+    -fx-background-color: #2d4b75;
+}
+
+.browse-button:pressed {
+    -fx-background-color: #1b304c;
+}
