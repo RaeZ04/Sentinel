@@ -1,6 +1,5 @@
 package com.sentinel.sentinel_pm;
 
-import java.io.File;
 import com.sentinel.sentinel_pm.config.ConfigManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
