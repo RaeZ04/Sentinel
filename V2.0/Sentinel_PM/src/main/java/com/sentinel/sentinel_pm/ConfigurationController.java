@@ -1,7 +1,6 @@
 package com.sentinel.sentinel_pm;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sentinel.sentinel_pm.entidadesJson.passRuta;
+import com.sentinel.sentinel_pm.config.ConfigManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -20,10 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
-import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
 import javafx.scene.Cursor;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.paint.Color;
 
 public class ConfigurationController {
 
@@ -48,48 +44,40 @@ public class ConfigurationController {
       // ----------------------------------------------------USOS DE BOTONES-------------------------------------------
       @FXML
       private void initialize() {
-
-            File jsonFile = new File("config.json");
-
             // Configurar efectos de hover para los botones
             configureButtonEffects();
 
-            //boton guardar para crear configuracion
+            // Botón guardar para crear configuración
             saveConf.setOnAction(event -> {
-
-                  // comprobacion de que ambos campos estan recogidos
+                  // Comprobación de que ambos campos están recogidos
                   if (PasswdTextBox.getText().trim().length() != 0 && rutaArchivoTextBox.getText().trim().length() != 0) {
-                        File rutaRecogida = new File(rutaArchivoTextBox.getText()); // coger ruta
+                        File rutaRecogida = new File(rutaArchivoTextBox.getText()); // Coger ruta
 
-                        //si la ruta recogida no existe la crea
+                        // Si la ruta recogida no existe la crea
                         if (!rutaRecogida.exists()) {
-
-                              //crea la ruta y ejecuta para crear el JSON
-                              System.out.println("la ruta no existe creando...");
-                              rutaRecogida.mkdirs();
-
-                              crearJSON(jsonFile);
-
+                              // Crea la ruta y ejecuta para guardar la configuración
+                              System.out.println("La ruta no existe, creando...");
+                              if (rutaRecogida.mkdirs()) {
+                                  guardarConfiguracion();
+                              } else {
+                                  mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo crear la ruta especificada");
+                              }
                         } else {
-                              System.out.println("la ruta existe");
-                              crearJSON(jsonFile);
+                              System.out.println("La ruta existe");
+                              guardarConfiguracion();
                         }
-
                   } else {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error Dialog");
-                        alert.setHeaderText("No deje ningun campo en blanco");
-                        alert.showAndWait();
+                        mostrarAlerta(Alert.AlertType.ERROR, "Error", "No deje ningún campo en blanco");
                   }
             });
 
-            //boton de carpeta para elegir carpeta
+            // Botón de carpeta para elegir carpeta
             botonBuscarCarpeta.setOnAction(event -> {
                   buscarCarpeta();
             });
 
             // ---------------------------------------------------BARRA DE ARRIBA------------------------------------------------------
-            // boton de salir X en la esquina superior derecha
+            // Botón de salir X en la esquina superior derecha
             exitButton.setOnAction(event -> {
                   Stage stage = (Stage) exitButton.getScene().getWindow();
                   Timeline timeline = new Timeline(
@@ -133,7 +121,6 @@ public class ConfigurationController {
                         });
                   }
             });
-
       }// ----------------------------------------------------FIN DE INITIALIZE---------------------------------------------------
 
       // Método para configurar los efectos visuales de los botones
@@ -143,62 +130,44 @@ public class ConfigurationController {
             botonBuscarCarpeta.setCursor(Cursor.HAND);
       }
 
-      // -------------------------------------------------------METODOS---------------------------------------------------------
-      public void obtenerPasswd() {
-            String nuevaPasswd = PasswdTextBox.getText();
-            System.out.println(nuevaPasswd);
-      }
-
-      public void obtenerRuta() {
-            String nuevaRuta = rutaArchivoTextBox.getText();
-            System.out.println(nuevaRuta);
-      }
-
-      public void crearJSON(File jsonFile) {
-            String passwdRecogida = PasswdTextBox.getText();
-            String rutaGuardar = rutaArchivoTextBox.getText();
-
-            passRuta passRuta = new passRuta(passwdRecogida, rutaGuardar);
-
-            ObjectMapper objectMapper = new ObjectMapper();
+      // -------------------------------------------------------MÉTODOS---------------------------------------------------------
+      private void guardarConfiguracion() {
             try {
-                  objectMapper.writeValue(jsonFile, passRuta);
-
-                  if (jsonFile.exists()) {
-                        // Cifrar el archivo JSON una vez creado
-                        utilesCifrado.encryptFile(jsonFile.getAbsolutePath());
-                        System.out.println("json cifrado");
-                  } else {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error");
-                        alert.setHeaderText("Archivo no creado");
-                        alert.setContentText("El archivo JSON no se ha creado con éxito.");
-                        alert.showAndWait();
-                  }
-            } catch (IOException e) {
-                  System.out.println("Error al crear el JSON: " + e.getMessage());
-                  e.printStackTrace();
+                String password = PasswdTextBox.getText();
+                String ruta = rutaArchivoTextBox.getText();
+                
+                // Usar el nuevo ConfigManager para guardar la configuración
+                if (ConfigManager.guardarConfiguracion(password, ruta)) {
+                    System.out.println("Configuración guardada correctamente");
+                    cargarEscenaInicio();
+                } else {
+                    System.out.println("Error al guardar la configuración");
+                }
             } catch (Exception e) {
-                  System.out.println("Error al cifrar el JSON: " + e.getMessage());
-                  e.printStackTrace();
+                System.out.println("Error al guardar la configuración: " + e.getMessage());
+                e.printStackTrace();
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al guardar la configuración: " + e.getMessage());
             }
+      }
 
-            try {
-                  FXMLLoader fxmlLoader = new FXMLLoader(
-                              AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
-                  Parent root = fxmlLoader.load();
-                  Scene scene = new Scene(root);
-                  scene.setFill(Color.TRANSPARENT);
+      private void cargarEscenaInicio() {
+          try {
+              FXMLLoader fxmlLoader = new FXMLLoader(
+                      AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+              Parent root = fxmlLoader.load();
+              Scene scene = new Scene(root);
+              scene.setFill(Color.TRANSPARENT);
 
-                  Stage stage = (Stage) saveConf.getScene().getWindow();
-                  stage.setScene(scene);
-                  stage.setResizable(false);
+              Stage stage = (Stage) saveConf.getScene().getWindow();
+              stage.setScene(scene);
+              stage.setResizable(false);
 
-                  stage.show();
-            } catch (IOException e) {
-                  System.out.println("Error al cargar la nueva escena: " + e.getMessage());
-                  e.printStackTrace();
-            }
+              stage.show();
+          } catch (IOException e) {
+              System.out.println("Error al cargar la nueva escena: " + e.getMessage());
+              e.printStackTrace();
+              mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo cargar la pantalla de inicio: " + e.getMessage());
+          }
       }
 
       public void buscarCarpeta() {
@@ -212,5 +181,13 @@ public class ConfigurationController {
             } else {
                   System.out.println("No se seleccionó ninguna carpeta");
             }
+      }
+      
+      private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {
+            Alert alert = new Alert(tipo);
+            alert.setTitle(titulo);
+            alert.setHeaderText(null);
+            alert.setContentText(mensaje);
+            alert.showAndWait();
       }
 }

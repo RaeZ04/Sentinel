@@ -1,9 +1,7 @@
 package com.sentinel.sentinel_pm;
 
 import java.io.File;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
+import com.sentinel.sentinel_pm.config.ConfigManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -16,7 +14,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import java.io.FileOutputStream;
 
 public class InicioController {
 
@@ -37,18 +34,12 @@ public class InicioController {
 
     private AppInitializer appInitializer = new AppInitializer();
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------//
-private String rutaJSON = "config.json";
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------//
-
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------//
     @FXML
     protected void initialize() {
         // Configuración de los botones
         botonInicio.setOnMouseEntered(event -> botonInicio.getScene().setCursor(Cursor.HAND));
         botonInicio.setOnMouseExited(event -> botonInicio.getScene().setCursor(Cursor.DEFAULT));
 
-    //---------------------------------------------------- BARRA DE ARRIBA-------------------------------------------------------------------------------//
         // boton de inicio
         botonInicio.setOnAction(event -> iniciarSesion());
         passwordField.setOnKeyPressed(event -> {
@@ -99,51 +90,19 @@ private String rutaJSON = "config.json";
             }
         });
     }
-    //----------------------------------------------------FIN DE BARRA DE ARRIBA-------------------------------------------------------------------------//
-//-------------------------------------------------------FIN DE INITIALIZE--------------------------------------------------------------------------------//
 
-
-//------------------------------------------------METODOS---------------------------------------------------------------------------------------------//
     private void iniciarSesion() {
-        String password = obtenerPasswdJSON();
         String passwordText = passwordField.getText();
+        
         if (passwordText.isEmpty()) {
             mensajeError.setText("Tienes que introducir una contraseña");
             mensajeError.setVisible(true);
-        } else if (!passwordText.equals(password)) {
+        } else if (!ConfigManager.verificarPassword(passwordText)) {
             mensajeError.setText("La contraseña es incorrecta");
             mensajeError.setVisible(true);
         } else {
             Stage stage = (Stage) botonInicio.getScene().getWindow();
-            appInitializer.changeScene(stage, "menu1.fxml");
+            appInitializer.changeScene(stage, "/com/sentinel/sentinel_pm/menu1.fxml");
         }
     }
-
-    //obtener ruta del JSON desencriptando en memoria, sin sobreescribir
-    public String obtenerPasswdJSON() {
-        try {
-            File jsonFile = new File(rutaJSON);
-
-            if (jsonFile.exists()) {
-                // Desencriptar JSON
-                byte[] decryptedBytes = utilesCifrado.decryptFile(rutaJSON);
-                // Sobrescribir el archivo JSON con los bytes desencriptados
-                try (FileOutputStream fos = new FileOutputStream(rutaJSON)) {
-                    fos.write(decryptedBytes);
-                }
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(decryptedBytes);
-                String passwd = jsonNode.get("passwd").asText();
-                return passwd;
-            }
-
-            return "";
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-//------------------------------------------------FIN DE METODOS--------------------------------------------------------------------------------------//
 }

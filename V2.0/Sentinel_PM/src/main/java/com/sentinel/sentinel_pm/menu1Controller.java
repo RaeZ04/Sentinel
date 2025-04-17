@@ -1,6 +1,5 @@
 package com.sentinel.sentinel_pm;
 
-
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -22,11 +21,14 @@ import javafx.util.Duration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sentinel.sentinel_pm.cifrado.utilesCifrado;
+import com.sentinel.sentinel_pm.config.ConfigManager;
 
 public class menu1Controller {
 
@@ -66,9 +68,8 @@ public class menu1Controller {
     private double lastY;
 
     //--------------------RUTAS DE ARCHIVOS--------------------------------------//
-    String ruta = obtenerRutaJSON();//obtener desde json
-    String rutaTemp = ruta+"/acc.json";//obtener desde json
-    String rutaConfig = "config.json"; //ruta archivo configuracion
+    String ruta = ConfigManager.obtenerRuta(); // Obtener ruta desde el nuevo ConfigManager
+    String rutaTemp = ruta+"/acc.json"; // Ruta del archivo de cuentas
     //-------------------------------------------------------------------------------//
 
     @SuppressWarnings("rawtypes")
@@ -89,22 +90,7 @@ public class menu1Controller {
                 rootNode.set("cuentas", objectMapper.createArrayNode());
                 objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
             } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al crear el archivo JSON");
-                alert.setContentText(e.getMessage());
-                alert.showAndWait();
-            }
-        } else {
-            // desencriptar archivo
-            try {
-                utilesCifrado.decryptFile(rutaTemp);
-            } catch (Exception e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al desencriptar el archivo");
-                alert.setContentText(e.getMessage());
-                alert.showAndWait();
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al crear el archivo JSON: " + e.getMessage());
             }
         }
 
@@ -112,36 +98,16 @@ public class menu1Controller {
         cargarItemsEnDropdown(dropdown);
 
         //----------------------------CONFIGURACION DE BOTONES BARRA DE ARRIBA------------------------------------//
+        // Botón de salir
         exitButton.setOnAction(event -> {
             Stage stage = (Stage) exitButton.getScene().getWindow();
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.seconds(0), new KeyValue(stage.opacityProperty(), 1.0)),
                     new KeyFrame(Duration.seconds(0.1), new KeyValue(stage.opacityProperty(), 0.0)));
             timeline.setOnFinished(e -> {
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                    }
-                    Platform.runLater(() -> System.exit(0));
-                }).start();
+                Platform.exit();
             });
             timeline.play();
-        });
-
-        exitButton.setOnAction(event -> {
-            try {
-                utilesCifrado.encryptFile(rutaTemp);
-                utilesCifrado.encryptFile(rutaConfig);
-            } catch (Exception ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error Dialog");
-                alert.setHeaderText("Error al encriptar el archivo");
-                alert.setContentText(ex.getMessage());
-                alert.showAndWait();
-            }
-            Platform.exit();
         });
 
         // Configuración del botón de minimizar
@@ -550,27 +516,26 @@ public class menu1Controller {
     };
     //================================FIN DE INITIALIZE=======================================================================//
 
-
-
-
-
     //===============================METODOS=============================================================================//
+    // Métodos auxiliares
+    private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
+    }
+    
     // Guardar Cuentas en el archivo JSON
     public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField) throws IOException {
         // comprueba si existen elementos en el dropdown
         if (dropdownVar.getValue() == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("No puedes añadir una cuenta a algo vacío");
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No puedes añadir una cuenta a algo vacío");
             return;
         }
     
         if (usernameField == null || usernameField.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("El nombre de usuario no puede estar vacío");
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "El nombre de usuario no puede estar vacío");
             return;
         }
         
@@ -614,16 +579,9 @@ public class menu1Controller {
                                         // Escribir el archivo JSON actualizado
                                         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
                                         
-                                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                                        successAlert.setTitle("Éxito");
-                                        successAlert.setHeaderText("Cuenta actualizada correctamente");
-                                        successAlert.showAndWait();
+                                        mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Cuenta actualizada correctamente");
                                     } catch (IOException e) {
-                                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                                        errorAlert.setTitle("Error");
-                                        errorAlert.setHeaderText("Error al actualizar la cuenta");
-                                        errorAlert.setContentText(e.getMessage());
-                                        errorAlert.showAndWait();
+                                        mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al actualizar la cuenta: " + e.getMessage());
                                     }
                                     break;
                                 }
@@ -661,16 +619,9 @@ public class menu1Controller {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
             
             // Mostrar mensaje de éxito
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setTitle("Éxito");
-            successAlert.setHeaderText("Cuenta guardada correctamente");
-            successAlert.showAndWait();
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Cuenta guardada correctamente");
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al guardar la cuenta");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al guardar la cuenta: " + e.getMessage());
             throw e; // Re-lanzar la excepción para que sea manejada por el llamador
         }
     }
@@ -715,16 +666,12 @@ public class menu1Controller {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
 
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al guardar el item");
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al guardar el item: " + e.getMessage());
         }
     }
 
     // metodo para cargar items en dropdown segun inicia la aplicacion (JSON)
-    private void cargarItemsEnDropdown(ComboBox<String> dropdownArg) {
-
+    public void cargarItemsEnDropdown(ComboBox<String> dropdownArg) {
         dropdownArg.getItems().clear(); // Limpiar el dropdown antes de cargar los nuevos elementos
 
         try {
@@ -735,7 +682,17 @@ public class menu1Controller {
                 throw new FileNotFoundException("El archivo JSON no existe: " + rutaTemp);
             }
 
-            JsonNode rootNode = objectMapper.readTree(file);
+            // Leer el contenido del archivo como un String
+            String jsonContent = Files.readString(Paths.get(rutaTemp), StandardCharsets.UTF_8);
+            
+            // Limpiar el contenido de caracteres de control inválidos
+            jsonContent = limpiarContenidoJSON(jsonContent);
+            
+            // Escribir el contenido limpio de vuelta al archivo
+            Files.writeString(Paths.get(rutaTemp), jsonContent, StandardCharsets.UTF_8);
+            
+            // Ahora analizar el JSON limpio
+            JsonNode rootNode = objectMapper.readTree(jsonContent);
             JsonNode cuentasNode = rootNode.path("cuentas");
 
             if (cuentasNode.isArray()) {
@@ -754,18 +711,29 @@ public class menu1Controller {
                 dropdownArg.setDisable(false); // Habilitar el dropdown si hay elementos
             }
         } catch (FileNotFoundException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Archivo JSON no encontrado");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Archivo JSON no encontrado: " + e.getMessage());
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al cargar los items (dropdown)");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al cargar los items (dropdown): " + e.getMessage());
         }
+    }
+    
+    /**
+     * Limpia el contenido JSON de caracteres de control inválidos
+     * @param json El contenido JSON original
+     * @return El contenido JSON limpio
+     */
+    private String limpiarContenidoJSON(String json) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+            // Permitir solo caracteres válidos para JSON:
+            // - Espacios en blanco regulares (\r, \n, \t, espacio)
+            // - Caracteres imprimibles (código ASCII 32-126)
+            if (c == '\r' || c == '\n' || c == '\t' || c == ' ' || (c >= 32 && c <= 126)) {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     //metodo para actualizar la contrasena en el JSON
@@ -816,17 +784,9 @@ public class menu1Controller {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
 
         } catch (FileNotFoundException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Archivo JSON no encontrado");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Archivo JSON no encontrado: " + e.getMessage());
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al actualizar la contraseña");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al actualizar la contraseña: " + e.getMessage());
         }
     }
 
@@ -914,10 +874,7 @@ public class menu1Controller {
             }
 
             if (!encontrado) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Información");
-                alert.setHeaderText("No se encontraron contraseñas para la clase seleccionada");
-                alert.showAndWait();
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Información", "No se encontraron contraseñas para la clase seleccionada");
             }
 
             // Desactivar el desplazamiento horizontal
@@ -934,10 +891,7 @@ public class menu1Controller {
             scrollpane.setContent(centeredPane);
 
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al mostrar las contraseñas");
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al mostrar las contraseñas: " + e.getMessage());
         }
     }
 
@@ -969,37 +923,9 @@ public class menu1Controller {
             }
 
         } catch (FileNotFoundException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Archivo JSON no encontrado");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Archivo JSON no encontrado: " + e.getMessage());
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al cargar los items");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
-        }
-    }
-
-    //metodo para obtener la ruta del json
-    private String obtenerRutaJSON(){
-        try{
-            // Leer la ruta desde el archivo JSON
-            String jsonFilePath = "config.json";
-            File jsonFile = new File(jsonFilePath);
-
-            if(jsonFile.exists()){
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(jsonFile);
-                String ruta = jsonNode.get("ruta").asText();
-                return ruta;
-            }
-            return "";
-
-        }catch(Exception e){
-            return null;
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al cargar los items: " + e.getMessage());
         }
     }
 
@@ -1031,17 +957,9 @@ public class menu1Controller {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
 
         } catch (FileNotFoundException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Archivo JSON no encontrado");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Archivo JSON no encontrado: " + e.getMessage());
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("Error al borrar la cuenta");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al borrar la cuenta: " + e.getMessage());
         }
     }
 
@@ -1050,11 +968,7 @@ public class menu1Controller {
         String claseSeleccionada = dropdown.getValue(); // Obtener la clase seleccionada del dropdown
 
         if (claseSeleccionada == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error Dialog");
-            alert.setHeaderText("No hay clase seleccionada");
-            alert.setContentText("Por favor, selecciona una clase para borrar.");
-            alert.showAndWait();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No hay clase seleccionada. Por favor, selecciona una clase para borrar.");
             return;
         }
 
@@ -1092,18 +1006,10 @@ public class menu1Controller {
                     // Actualizar el dropdown después de borrar la clase
                     cargarItemsEnDropdown(dropdown);
 
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Información");
-                    alert.setHeaderText("Clase eliminada");
-                    alert.setContentText("La clase " + claseSeleccionada + " ha sido eliminada.");
-                    alert.showAndWait();
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Información", "La clase " + claseSeleccionada + " ha sido eliminada.");
 
                 } catch (IOException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error Dialog");
-                    alert.setHeaderText("Error al borrar la clase");
-                    alert.setContentText(e.getMessage());
-                    alert.showAndWait();
+                    mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al borrar la clase: " + e.getMessage());
                 }
             }
         });

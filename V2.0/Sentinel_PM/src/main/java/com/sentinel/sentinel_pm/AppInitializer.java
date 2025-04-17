@@ -1,11 +1,14 @@
 package com.sentinel.sentinel_pm;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sentinel.sentinel_pm.config.ConfigManager;
+import com.sentinel.sentinel_pm.entidadesJson.passRuta;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -21,27 +24,22 @@ public class AppInitializer extends Application {
     @Override
     public void start(@SuppressWarnings("exports") Stage stage) {
         try {
-            // Leer la ruta desde el archivo JSON
-            String jsonFilePath = "config.json";
-            File jsonFile = new File(jsonFilePath);
+            // Inicializar el sistema de configuración (limpia archivos corruptos si es necesario)
+            ConfigManager.inicializar();
+            
+            // Usar el ConfigManager para cargar la configuración
+            passRuta config = ConfigManager.cargarConfiguracion();
             FXMLLoader fxmlLoader;
-
-            // si el archivo existe, lee la ruta y redirige a inicio, si no a configuracion para crear el archivo JSON
-            if (jsonFile.exists() && jsonFile.length() > 0) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(jsonFile);
-                
-                // Verificar que el nodo ruta exista
-                if (jsonNode != null && jsonNode.has("ruta")) {
-                    String ruta = jsonNode.get("ruta").asText();
-
-                    // Verificar que la ruta no sea nula o vacía
-                    if (ruta != null && !ruta.isEmpty()) {
-                        fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
-                    } else {
-                        fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
-                    }
+            
+            // Si existe configuración y tiene una ruta válida, ir a Inicio, sino a Configuración
+            if (config != null && config.getRuta() != null && !config.getRuta().isEmpty()) {
+                // Verificar que la ruta siga existiendo
+                File rutaGuardada = new File(config.getRuta());
+                if (rutaGuardada.exists() && rutaGuardada.isDirectory()) {
+                    fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
                 } else {
+                    mostrarAlerta(AlertType.WARNING, "Ruta no encontrada", 
+                        "La ruta guardada ya no existe. Por favor configure nuevamente.");
                     fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
                 }
             } else {
@@ -60,10 +58,10 @@ public class AppInitializer extends Application {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            mostrarAlerta(AlertType.ERROR, "Error", "Error al iniciar la aplicación: " + e.getMessage());
         }
     }
 
-    // Rest of your code remains the same
     public void changeScene(@SuppressWarnings("exports") Stage stage, String fxml) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(fxml));
@@ -75,6 +73,7 @@ public class AppInitializer extends Application {
             makeWindowDraggable(root, stage);
         } catch (IOException e) {
             e.printStackTrace();
+            mostrarAlerta(AlertType.ERROR, "Error", "Error al cambiar de pantalla: " + e.getMessage());
         }
     }
 
@@ -90,6 +89,19 @@ public class AppInitializer extends Application {
             stage.setX(event.getScreenX() - xOffset);
             stage.setY(event.getScreenY() - yOffset);
         });
+    }
+    
+    private static void mostrarAlerta(AlertType tipo, String titulo, String mensaje) {
+        try {
+            Alert alert = new Alert(tipo);
+            alert.setTitle(titulo);
+            alert.setHeaderText(null);
+            alert.setContentText(mensaje);
+            alert.showAndWait();
+        } catch (Exception e) {
+            System.err.println("Error al mostrar alerta: " + e.getMessage());
+            System.err.println(titulo + ": " + mensaje);
+        }
     }
 
     public static void main(String[] args) {
