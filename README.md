@@ -14,7 +14,7 @@ Sentinel Password Manager es una aplicación de escritorio desarrollada en Java 
 
 ### Opción 1: Ejecutar el archivo JAR
 
-1. Descarga el archivo `Sentinel-PM-2.3.jar` de la carpeta `target`
+1. Descarga el archivo `Sentinel.jar` de la carpeta `target` o descargado de los `releases`
 2. Asegúrate de tener Java 21 o superior instalado en tu sistema
 3. Ejecuta la aplicación con el comando:
 
@@ -27,7 +27,7 @@ java -jar Sentinel-PM-2.3.jar
 1. Clona el repositorio:
 
 ```bash
-git clone https://github.com/RaeZ04/Sentinel-Password-Manager.git
+git clone https://github.com/RaeZ04/Sentinel
 ```
 
 2. Navega al directorio del proyecto:
