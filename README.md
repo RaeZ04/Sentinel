@@ -62,9 +62,9 @@ mvn clean package
 #### Organización por clases
 
 Las contraseñas se organizan en "clases" o categorías. Por ejemplo:
-- Redes sociales
-- Correos electrónicos
-- Servicios bancarios
+- Google
+- Santander
+- Steam
 - Etc.
 
 #### Añadir una nueva clase
