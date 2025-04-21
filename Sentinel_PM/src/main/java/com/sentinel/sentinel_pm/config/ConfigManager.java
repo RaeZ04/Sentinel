@@ -1,7 +1,6 @@
 package com.sentinel.sentinel_pm.config;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,28 +20,69 @@ import javafx.scene.control.Alert.AlertType;
 
 public class ConfigManager {
     
-    private static final String CONFIG_FILE = "config.json";
-    private static final String CONFIG_BACKUP = "config.json.bak";
+    private static final String CONFIG_FILENAME = "config.json";
+    private static final String CONFIG_BACKUP_FILENAME = "config.json.bak";
+    private static final String CONFIG_CORRUPTED_MARKER = "config.json.corrupted";
+    private static String configDirectory = "";
     
     /**
      * Inicializa el sistema de configuración y limpia archivos corruptos si es necesario
      */
     public static void inicializar() {
         try {
-            // Verificar si hay un archivo marcador de corrupción
-            File corruptedMarker = new File("config.json.corrupted");
+            // Verificar si hay un archivo marcador de corrupción en el directorio actual
+            File corruptedMarker = new File(CONFIG_CORRUPTED_MARKER);
             if (corruptedMarker.exists()) {
                 System.out.println("Detectado marcador de configuración corrupta. Limpiando archivos...");
                 
                 // Eliminar todos los archivos de configuración
-                Files.deleteIfExists(Paths.get(CONFIG_FILE));
-                Files.deleteIfExists(Paths.get(CONFIG_BACKUP));
-                Files.deleteIfExists(Paths.get("config.json.corrupted"));
+                Files.deleteIfExists(Paths.get(getConfigFilePath()));
+                Files.deleteIfExists(Paths.get(getBackupFilePath()));
+                Files.deleteIfExists(Paths.get(CONFIG_CORRUPTED_MARKER));
                 
                 System.out.println("Archivos de configuración eliminados correctamente.");
             }
         } catch (Exception e) {
             System.err.println("Error al limpiar archivos: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Establece el directorio donde se almacenarán los archivos de configuración
+     * 
+     * @param directory La ruta del directorio donde se guardarán los archivos
+     */
+    public static void setConfigDirectory(String directory) {
+        if (directory != null && !directory.isEmpty()) {
+            configDirectory = directory;
+            
+            // Asegurarse que el directorio existe
+            File dir = new File(directory);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+        }
+    }
+    
+    /**
+     * Obtiene la ruta completa al archivo de configuración
+     */
+    private static String getConfigFilePath() {
+        if (configDirectory != null && !configDirectory.isEmpty()) {
+            return Paths.get(configDirectory, CONFIG_FILENAME).toString();
+        } else {
+            return CONFIG_FILENAME;
+        }
+    }
+    
+    /**
+     * Obtiene la ruta completa al archivo de backup
+     */
+    private static String getBackupFilePath() {
+        if (configDirectory != null && !configDirectory.isEmpty()) {
+            return Paths.get(configDirectory, CONFIG_BACKUP_FILENAME).toString();
+        } else {
+            return CONFIG_BACKUP_FILENAME;
         }
     }
     
@@ -55,10 +95,22 @@ public class ConfigManager {
      */
     public static boolean guardarConfiguracion(String password, String rutaArchivo) {
         try {
+            // Actualizar el directorio de configuración con la nueva ruta
+            setConfigDirectory(rutaArchivo);
+            
+            // Crear el directorio si no existe
+            File rutaDir = new File(rutaArchivo);
+            if (!rutaDir.exists()) {
+                rutaDir.mkdirs();
+            }
+            
+            String configPath = getConfigFilePath();
+            String backupPath = getBackupFilePath();
+            
             // Primero crear una copia de seguridad si existe el archivo
-            File configFile = new File(CONFIG_FILE);
+            File configFile = new File(configPath);
             if (configFile.exists()) {
-                Files.copy(Paths.get(CONFIG_FILE), Paths.get(CONFIG_BACKUP), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(Paths.get(configPath), Paths.get(backupPath), StandardCopyOption.REPLACE_EXISTING);
             }
             
             // Crear el objeto para el JSON
@@ -81,6 +133,7 @@ public class ConfigManager {
                 return false;
             }
             
+            System.out.println("Configuración guardada en: " + configPath);
             return true;
         } catch (Exception e) {
             System.err.println("Error al guardar configuración: " + e.getMessage());
@@ -97,21 +150,56 @@ public class ConfigManager {
      */
     public static passRuta cargarConfiguracion() {
         try {
-            File configFile = new File(CONFIG_FILE);
+            // Primero intentar cargar desde el directorio actual (para compatibilidad con versiones anteriores)
+            String defaultConfigPath = CONFIG_FILENAME;
+            File defaultConfigFile = new File(defaultConfigPath);
             
-            // Si no existe el archivo, intentar usar el backup
-            if (!configFile.exists() && new File(CONFIG_BACKUP).exists()) {
-                Files.copy(Paths.get(CONFIG_BACKUP), Paths.get(CONFIG_FILE), StandardCopyOption.REPLACE_EXISTING);
-                configFile = new File(CONFIG_FILE);
+            if (defaultConfigFile.exists()) {
+                // Cargar configuración del archivo predeterminado
+                passRuta config = cargarConfiguracionDesdeArchivo(defaultConfigPath);
+                if (config != null) {
+                    // Actualizar el directorio de configuración con la ruta cargada
+                    setConfigDirectory(config.getRuta());
+                }
+                return config;
             }
             
-            // Si no hay archivo o backup, retornar null
-            if (!configFile.exists()) {
-                return null;
+            // Si no existe en la ubicación predeterminada, intentar buscar en el último directorio conocido
+            if (configDirectory != null && !configDirectory.isEmpty()) {
+                String configPath = getConfigFilePath();
+                File configFile = new File(configPath);
+                
+                if (configFile.exists()) {
+                    return cargarConfiguracionDesdeArchivo(configPath);
+                }
+                
+                // Intentar usar el backup en la ruta configurada
+                String backupPath = getBackupFilePath();
+                File backupFile = new File(backupPath);
+                
+                if (backupFile.exists()) {
+                    Files.copy(Paths.get(backupPath), Paths.get(configPath), StandardCopyOption.REPLACE_EXISTING);
+                    return cargarConfiguracionDesdeArchivo(configPath);
+                }
             }
             
+            return null;
+            
+        } catch (Exception e) {
+            System.err.println("Error al cargar configuración: " + e.getMessage());
+            e.printStackTrace();
+            mostrarAlerta(AlertType.ERROR, "Error", "Error al cargar la configuración: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Carga la configuración desde una ruta específica
+     */
+    private static passRuta cargarConfiguracionDesdeArchivo(String filePath) {
+        try {
             // Leer el archivo
-            String jsonContent = Files.readString(Paths.get(CONFIG_FILE), StandardCharsets.UTF_8);
+            String jsonContent = Files.readString(Paths.get(filePath), StandardCharsets.UTF_8);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(jsonContent);
             
@@ -125,22 +213,8 @@ public class ConfigManager {
             return new passRuta(passwordHash, rutaGuardada);
             
         } catch (Exception e) {
-            System.err.println("Error al cargar configuración: " + e.getMessage());
+            System.err.println("Error al cargar configuración desde archivo: " + filePath + ": " + e.getMessage());
             e.printStackTrace();
-            
-            // Intentar recuperar del backup
-            try {
-                if (new File(CONFIG_BACKUP).exists()) {
-                    Files.copy(Paths.get(CONFIG_BACKUP), Paths.get(CONFIG_FILE), StandardCopyOption.REPLACE_EXISTING);
-                    mostrarAlerta(AlertType.INFORMATION, "Recuperación", 
-                            "Se ha recuperado la configuración desde una copia de seguridad.");
-                    return cargarConfiguracion(); // Intentar cargar de nuevo
-                }
-            } catch (IOException ex) {
-                System.err.println("Error al restaurar backup: " + ex.getMessage());
-            }
-            
-            mostrarAlerta(AlertType.ERROR, "Error", "Error al cargar la configuración: " + e.getMessage());
             return null;
         }
     }
@@ -194,7 +268,7 @@ public class ConfigManager {
      */
     public static void marcarConfiguracionComoCorrupta() {
         try {
-            new File("config.json.corrupted").createNewFile();
+            new File(CONFIG_CORRUPTED_MARKER).createNewFile();
         } catch (Exception e) {
             System.err.println("Error al marcar configuración como corrupta: " + e.getMessage());
         }
