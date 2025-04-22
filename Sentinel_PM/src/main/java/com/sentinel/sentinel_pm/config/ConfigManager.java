@@ -23,6 +23,7 @@ public class ConfigManager {
     private static final String CONFIG_FILENAME = "config.json";
     private static final String CONFIG_BACKUP_FILENAME = "config.json.bak";
     private static final String CONFIG_CORRUPTED_MARKER = "config.json.corrupted";
+    private static final String SENTINEL_SUBFOLDER = "sentinel"; // Subfolder name
     private static String configDirectory = "";
     
     /**
@@ -50,16 +51,19 @@ public class ConfigManager {
     /**
      * Establece el directorio donde se almacenarán los archivos de configuración
      * 
-     * @param directory La ruta del directorio donde se guardarán los archivos
+     * @param directory La ruta base del directorio elegido por el usuario
      */
     public static void setConfigDirectory(String directory) {
         if (directory != null && !directory.isEmpty()) {
-            configDirectory = directory;
+            // Crear la estructura de carpetas: ruta_del_usuario/sentinel
+            String sentinelPath = Paths.get(directory, SENTINEL_SUBFOLDER).toString();
+            configDirectory = sentinelPath;
             
             // Asegurarse que el directorio existe
-            File dir = new File(directory);
+            File dir = new File(sentinelPath);
             if (!dir.exists()) {
                 dir.mkdirs();
+                System.out.println("Creada carpeta sentinel en: " + sentinelPath);
             }
         }
     }
@@ -95,14 +99,8 @@ public class ConfigManager {
      */
     public static boolean guardarConfiguracion(String password, String rutaArchivo) {
         try {
-            // Actualizar el directorio de configuración con la nueva ruta
+            // Actualizar el directorio de configuración con la nueva ruta (creará subcarpeta sentinel)
             setConfigDirectory(rutaArchivo);
-            
-            // Crear el directorio si no existe
-            File rutaDir = new File(rutaArchivo);
-            if (!rutaDir.exists()) {
-                rutaDir.mkdirs();
-            }
             
             String configPath = getConfigFilePath();
             String backupPath = getBackupFilePath();
@@ -180,6 +178,18 @@ public class ConfigManager {
                 if (backupFile.exists()) {
                     Files.copy(Paths.get(backupPath), Paths.get(configPath), StandardCopyOption.REPLACE_EXISTING);
                     return cargarConfiguracionDesdeArchivo(configPath);
+                }
+            }
+            
+            // Intentar buscar en una carpeta sentinel dentro de la ubicación predeterminada del usuario
+            // (para compatibilidad con versiones anteriores en caso de que el usuario haya movido el archivo)
+            File userHome = new File(System.getProperty("user.home"));
+            if (userHome.exists()) {
+                String homeConfigPath = Paths.get(userHome.getAbsolutePath(), SENTINEL_SUBFOLDER, CONFIG_FILENAME).toString();
+                File homeConfigFile = new File(homeConfigPath);
+                
+                if (homeConfigFile.exists()) {
+                    return cargarConfiguracionDesdeArchivo(homeConfigPath);
                 }
             }
             

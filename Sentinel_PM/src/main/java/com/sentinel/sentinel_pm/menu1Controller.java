@@ -76,7 +76,8 @@ public class menu1Controller {
 
     //--------------------RUTAS DE ARCHIVOS--------------------------------------//
     String ruta = ConfigManager.obtenerRuta(); // Obtener ruta desde el nuevo ConfigManager
-    String rutaTemp = ruta+"/acc.json"; // Ruta del archivo de cuentas
+    private static final String SENTINEL_SUBFOLDER = "sentinel"; // Mismo nombre de subfolder que usa ConfigManager
+    String rutaTemp = Paths.get(ruta, SENTINEL_SUBFOLDER, "acc.json").toString(); // Ruta del archivo de cuentas en la carpeta sentinel
     //-------------------------------------------------------------------------------//
 
     @SuppressWarnings("rawtypes")
