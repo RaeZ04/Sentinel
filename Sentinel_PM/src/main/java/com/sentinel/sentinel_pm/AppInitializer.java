@@ -20,31 +20,41 @@ import java.io.IOException;
 public class AppInitializer extends Application {
 
     private double xOffset = 0;
-    private double yOffset = 0;
-
-    @Override
+    private double yOffset = 0;    @Override
     public void start(@SuppressWarnings("exports") Stage stage) {
         try {
             // Inicializar el sistema de configuración (limpia archivos corruptos si es necesario)
             ConfigManager.inicializar();
             
-            // Usar el ConfigManager para cargar la configuración
-            passRuta config = ConfigManager.cargarConfiguracion();
+            // Comprobar si existe config.json en alguna ubicación conocida
+            boolean configExists = false;
+            
+            // 1. Comprobar en el directorio actual
+            File currentDirConfig = new File("config.json");
+            if (currentDirConfig.exists()) {
+                configExists = true;
+                System.out.println("Archivo de configuración encontrado en: " + currentDirConfig.getAbsolutePath());
+            } else {
+                // 2. Comprobar en la ruta específica si la conocemos
+                File specificConfig = new File("c:\\Users\\Sergio\\Desktop\\fdsf\\sentinel\\config.json");
+                if (specificConfig.exists()) {
+                    configExists = true;
+                    System.out.println("Archivo de configuración encontrado en: " + specificConfig.getAbsolutePath());
+                    // Establecer esta ruta como la carpeta de configuración
+                    ConfigManager.setConfigDirectory("c:\\Users\\Sergio\\Desktop\\fdsf");
+                }
+            }
+            
             FXMLLoader fxmlLoader;
             
-            // Si existe configuración y tiene una ruta válida, ir a Inicio, sino a Configuración
-            if (config != null && config.getRuta() != null && !config.getRuta().isEmpty()) {
-                // Verificar que la ruta siga existiendo
-                File rutaGuardada = new File(config.getRuta());
-                if (rutaGuardada.exists() && rutaGuardada.isDirectory()) {
-                    fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
-                } else {
-                    mostrarAlerta(AlertType.WARNING, "Ruta no encontrada", 
-                        "La ruta guardada ya no existe. Por favor configure nuevamente.");
-                    fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
-                }
+            if (configExists) {
+                // Si existe el archivo de configuración, ir a la pantalla de inicio de sesión
+                fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Inicio.fxml"));
+                System.out.println("Configuración existente encontrada, mostrando pantalla de inicio de sesión");
             } else {
+                // No hay configuración existente, mostrar la pantalla de configuración inicial
                 fxmlLoader = new FXMLLoader(AppInitializer.class.getResource("/com/sentinel/sentinel_pm/Configuracion.fxml"));
+                System.out.println("No se encontró configuración, mostrando pantalla de configuración inicial");
             }
 
             Parent root = fxmlLoader.load();

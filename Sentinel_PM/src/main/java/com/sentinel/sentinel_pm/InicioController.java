@@ -10,6 +10,7 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Alert;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -101,6 +102,29 @@ public class InicioController {
             // Guardar la contraseña en el gestor de contraseñas para usarla en el cifrado
             com.sentinel.sentinel_pm.config.PasswordManager.setMasterPassword(passwordText);
             
+            // Verificar que la ruta de almacenamiento sigue existiendo
+            String rutaDescifrada = ConfigManager.obtenerRutaConPassword(passwordText);
+            if (rutaDescifrada == null || rutaDescifrada.isEmpty()) {
+                mensajeError.setText("Error al obtener la ruta de almacenamiento");
+                mensajeError.setVisible(true);
+                return;
+            }
+            
+            java.io.File rutaGuardada = new java.io.File(rutaDescifrada);
+            if (!rutaGuardada.exists() || !rutaGuardada.isDirectory()) {
+                // Si la ruta ya no existe, mostrar diálogo de advertencia y redirigir a configuración
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Ruta no encontrada");
+                alert.setHeaderText(null);
+                alert.setContentText("La ruta de almacenamiento ya no existe. Por favor configure nuevamente.");
+                alert.showAndWait();
+                
+                Stage stage = (Stage) botonInicio.getScene().getWindow();
+                appInitializer.changeScene(stage, "/com/sentinel/sentinel_pm/Configuracion.fxml");
+                return;
+            }
+            
+            // Si todo está bien, continuar al menú principal
             Stage stage = (Stage) botonInicio.getScene().getWindow();
             appInitializer.changeScene(stage, "/com/sentinel/sentinel_pm/menu1.fxml");
         }

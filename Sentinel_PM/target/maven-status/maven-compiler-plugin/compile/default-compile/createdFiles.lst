@@ -1,8 +1,10 @@
-com/sentinel/sentinel_pm/config/ConfigManager.class
-com/sentinel/sentinel_pm/menu1Controller.class
-com/sentinel/sentinel_pm/entidadesJson/passRuta.class
+com\sentinel\sentinel_pm\config\ConfigManager.class
+com\sentinel\sentinel_pm\config\CryptoUtils.class
+com\sentinel\sentinel_pm\App.class
+com\sentinel\sentinel_pm\config\PasswordManager.class
+com\sentinel\sentinel_pm\InicioController.class
+com\sentinel\sentinel_pm\menu1Controller.class
 module-info.class
-com/sentinel/sentinel_pm/ConfigurationController.class
-com/sentinel/sentinel_pm/InicioController.class
-com/sentinel/sentinel_pm/App.class
-com/sentinel/sentinel_pm/AppInitializer.class
+com\sentinel\sentinel_pm\ConfigurationController.class
+com\sentinel\sentinel_pm\AppInitializer.class
+com\sentinel\sentinel_pm\entidadesJson\passRuta.class

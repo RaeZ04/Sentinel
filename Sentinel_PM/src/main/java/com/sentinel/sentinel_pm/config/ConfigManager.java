@@ -201,8 +201,7 @@ public class ConfigManager {
             mostrarAlerta(AlertType.ERROR, "Error", "Error al cargar la configuración: " + e.getMessage());
             return null;
         }
-    }
-      /**
+    }    /**
      * Carga la configuración desde una ruta específica
      */
     private static passRuta cargarConfiguracionDesdeArchivo(String filePath) {
@@ -212,14 +211,18 @@ public class ConfigManager {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(jsonContent);
             
-            // Extraer los valores
-            String rutaGuardada = rootNode.has("ruta") ? rootNode.get("ruta").asText() : "";
+            // Extraer los valores sin intentar descifrarlos todavía
+            String rutaCifrada = rootNode.has("ruta") ? rootNode.get("ruta").asText() : "";
+            
             // Buscar primero con el nombre "passwd", si no existe buscar con "password" para compatibilidad
             String passwordHash = rootNode.has("passwd") ? rootNode.get("passwd").asText() : 
                                  (rootNode.has("password") ? rootNode.get("password").asText() : "");
             
-            // Crear y retornar el objeto
-            return new passRuta(passwordHash, rutaGuardada);
+            // Solo validar que existan los campos, sin intentar descifrarlos
+            // La ruta se descifrará cuando se llame específicamente a obtenerRutaConPassword
+            
+            // Crear y retornar el objeto con los datos cifrados
+            return new passRuta(passwordHash, rutaCifrada);
             
         } catch (Exception e) {
             System.err.println("Error al cargar configuración desde archivo: " + filePath + ": " + e.getMessage());
