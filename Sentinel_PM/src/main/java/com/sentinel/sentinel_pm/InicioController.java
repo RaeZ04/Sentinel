@@ -88,9 +88,7 @@ public class InicioController {
                 });
             }
         });
-    }
-
-    private void iniciarSesion() {
+    }    private void iniciarSesion() {
         String passwordText = passwordField.getText();
         
         if (passwordText.isEmpty()) {
@@ -100,6 +98,9 @@ public class InicioController {
             mensajeError.setText("La contraseña es incorrecta");
             mensajeError.setVisible(true);
         } else {
+            // Guardar la contraseña en el gestor de contraseñas para usarla en el cifrado
+            com.sentinel.sentinel_pm.config.PasswordManager.setMasterPassword(passwordText);
+            
             Stage stage = (Stage) botonInicio.getScene().getWindow();
             appInitializer.changeScene(stage, "/com/sentinel/sentinel_pm/menu1.fxml");
         }

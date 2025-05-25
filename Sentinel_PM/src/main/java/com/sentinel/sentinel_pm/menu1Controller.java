@@ -72,10 +72,8 @@ public class menu1Controller {
     @FXML
     private GridPane grid;
 
-    private double lastY;
-
-    //--------------------RUTAS DE ARCHIVOS--------------------------------------//
-    String ruta = ConfigManager.obtenerRuta(); // Obtener ruta desde el nuevo ConfigManager
+    private double lastY;    //--------------------RUTAS DE ARCHIVOS--------------------------------------//
+    String ruta = ConfigManager.obtenerRutaConPassword(com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword()); // Obtener ruta desde el nuevo ConfigManager usando la contraseña del usuario
     private static final String SENTINEL_SUBFOLDER = "sentinel"; // Mismo nombre de subfolder que usa ConfigManager
     String rutaTemp = Paths.get(ruta, SENTINEL_SUBFOLDER, "acc.json").toString(); // Ruta del archivo de cuentas en la carpeta sentinel
     //-------------------------------------------------------------------------------//
@@ -113,6 +111,8 @@ public class menu1Controller {
                     new KeyFrame(Duration.seconds(0), new KeyValue(stage.opacityProperty(), 1.0)),
                     new KeyFrame(Duration.seconds(0.1), new KeyValue(stage.opacityProperty(), 0.0)));
             timeline.setOnFinished(e -> {
+                // Limpiar la contraseña maestra de la memoria antes de salir
+                com.sentinel.sentinel_pm.config.PasswordManager.clearPassword();
                 Platform.exit();
             });
             timeline.play();
@@ -394,8 +394,7 @@ public class menu1Controller {
         alert.setContentText(mensaje);
         alert.showAndWait();
     }
-    
-    // Guardar Cuentas en el archivo JSON
+      // Guardar Cuentas en el archivo JSON
     public void guardarCuentas(ComboBox<String> dropdownVar, String usernameField, String passwordField) throws IOException {
         // comprueba si existen elementos en el dropdown
         if (dropdownVar.getValue() == null) {
@@ -414,18 +413,51 @@ public class menu1Controller {
     
         // Obtener el nodo de cuentas
         ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+        
+        // Cifrar el nombre de la clase y el nombre de usuario
+        String className = dropdownVar.getValue();
+        String encryptedClassName = cifrarNombreClase(className);
+        String encryptedUsername = cifrarNombreCuenta(usernameField);
     
-        // Buscar si ya existe la clase en el JSON
+        // Buscar si ya existe la clase en el JSON (ahora buscamos tanto por nombre cifrado como por nombre sin cifrar)
         boolean claseEncontrada = false;
     
         for (JsonNode cuentaNode : cuentasNode) {
-            if (cuentaNode.has(dropdownVar.getValue())) {
-                ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(dropdownVar.getValue());
+            // Verificamos si el nodo tiene el nombre de clase cifrado o sin cifrar
+            boolean hasEncryptedClass = cuentaNode.has(encryptedClassName);
+            boolean hasPlainClass = cuentaNode.has(className);
+            
+            if (hasEncryptedClass || hasPlainClass) {
+                // Usar la clave que corresponda (cifrada o sin cifrar)
+                String classKey = hasEncryptedClass ? encryptedClassName : className;
+                ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(classKey);
                 
-                // Verificar si ya existe una cuenta con el mismo nombre de usuario
+                // Si la clase existe con nombre sin cifrar, actualizamos el JSON para usar nombre cifrado
+                if (hasPlainClass && !hasEncryptedClass) {
+                    // Crear un nuevo objeto con la clase cifrada
+                    ObjectNode nuevaClaseCifrada = objectMapper.createObjectNode();
+                    nuevaClaseCifrada.set(encryptedClassName, cuentasArray);
+                    
+                    // Reemplazar el nodo antiguo
+                    int index = -1;
+                    for (int i = 0; i < cuentasNode.size(); i++) {
+                        if (cuentasNode.get(i).has(className)) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index >= 0) {
+                        cuentasNode.set(index, nuevaClaseCifrada);
+                    }
+                }
+                
+                // Verificar si ya existe una cuenta con el mismo nombre de usuario (cifrado o sin cifrar)
                 boolean cuentaExistente = false;
                 for (JsonNode cuenta : cuentasArray) {
-                    if (cuenta.has(usernameField)) {
+                    boolean hasEncryptedAccount = cuenta.has(encryptedUsername);
+                    boolean hasPlainAccount = cuenta.has(usernameField);
+                    
+                    if (hasEncryptedAccount || hasPlainAccount) {
                         cuentaExistente = true;
                         // Preguntar al usuario si desea sobrescribir
                         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
@@ -442,8 +474,18 @@ public class menu1Controller {
                         if (result.isPresent() && result.get() == buttonTypeYes) {
                             // Eliminar la cuenta existente
                             for (int i = 0; i < cuentasArray.size(); i++) {
-                                if (cuentasArray.get(i).has(usernameField)) {
-                                    ((ObjectNode) cuentasArray.get(i)).put(usernameField, passwordField);
+                                String accountKey = hasEncryptedAccount ? encryptedUsername : usernameField;
+                                if (cuentasArray.get(i).has(accountKey)) {
+                                    // Cifrar la contraseña antes de guardarla
+                                    String encryptedPassword = cifrarPassword(passwordField);
+                                    
+                                    // Crear un nuevo objeto con la cuenta cifrada
+                                    ObjectNode cuentaActualizada = objectMapper.createObjectNode();
+                                    cuentaActualizada.put(encryptedUsername, encryptedPassword);
+                                    
+                                    // Reemplazar la cuenta antigua por la nueva (con nombre cifrado)
+                                    cuentasArray.set(i, cuentaActualizada);
+                                    
                                     try {
                                         // Escribir el archivo JSON actualizado
                                         objectMapper.writerWithDefaultPrettyPrinter().writeValue(file, rootNode);
@@ -463,7 +505,9 @@ public class menu1Controller {
                 // Si no existe la cuenta, añadirla
                 if (!cuentaExistente) {
                     ObjectNode nuevaCuenta = objectMapper.createObjectNode();
-                    nuevaCuenta.put(usernameField, passwordField);
+                    // Cifrar la contraseña antes de guardarla
+                    String encryptedPassword = cifrarPassword(passwordField);
+                    nuevaCuenta.put(encryptedUsername, encryptedPassword);
                     cuentasArray.add(nuevaCuenta);
                 }
                 
@@ -477,9 +521,11 @@ public class menu1Controller {
             ObjectNode nuevaClase = objectMapper.createObjectNode();
             ArrayNode cuentasArray = objectMapper.createArrayNode();
             ObjectNode nuevaCuenta = objectMapper.createObjectNode();
-            nuevaCuenta.put(usernameField, passwordField);
+            // Cifrar la contraseña antes de guardarla
+            String encryptedPassword = cifrarPassword(passwordField);
+            nuevaCuenta.put(encryptedUsername, encryptedPassword);
             cuentasArray.add(nuevaCuenta);
-            nuevaClase.set(dropdownVar.getValue(), cuentasArray);
+            nuevaClase.set(encryptedClassName, cuentasArray);
             cuentasNode.add(nuevaClase);
         }
     
@@ -493,9 +539,7 @@ public class menu1Controller {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al guardar la cuenta: " + e.getMessage());
             throw e; // Re-lanzar la excepción para que sea manejada por el llamador
         }
-    }
-
-    // metodo para guardar items en archivo JSON
+    }    // metodo para guardar items en archivo JSON
     private void guardarItemEnArchivo(String item) {
         String filePath = rutaTemp;
         File file = new File(filePath);
@@ -512,22 +556,25 @@ public class menu1Controller {
 
             // Obtener el nodo de cuentas
             ArrayNode cuentasNode = (ArrayNode) rootNode.path("cuentas");
+            
+            // Cifrar el nombre de la clase
+            String encryptedItem = cifrarNombreClase(item);
 
-            // Buscar si ya existe la clase en el JSON
+            // Buscar si ya existe la clase en el JSON (cifrada o sin cifrar)
             boolean claseEncontrada = false;
 
             for (JsonNode cuentaNode : cuentasNode) {
-                if (cuentaNode.has(item)) {
+                if (cuentaNode.has(item) || cuentaNode.has(encryptedItem)) {
                     claseEncontrada = true;
                     break;
                 }
             }
 
-            // Si no se encontró la clase, añadir una nueva
+            // Si no se encontró la clase, añadir una nueva con el nombre cifrado
             if (!claseEncontrada) {
                 ObjectNode nuevaClase = objectMapper.createObjectNode();
                 ArrayNode cuentasArray = objectMapper.createArrayNode();
-                nuevaClase.set(item, cuentasArray);
+                nuevaClase.set(encryptedItem, cuentasArray);
                 cuentasNode.add(nuevaClase);
             }
 
@@ -537,9 +584,7 @@ public class menu1Controller {
         } catch (IOException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al guardar el item: " + e.getMessage());
         }
-    }
-
-    // metodo para cargar items en dropdown segun inicia la aplicacion (JSON)
+    }    // metodo para cargar items en dropdown segun inicia la aplicacion (JSON)
     public void cargarItemsEnDropdown(ComboBox<String> dropdownArg) {
         dropdownArg.getItems().clear(); // Limpiar el dropdown antes de cargar los nuevos elementos
 
@@ -567,7 +612,9 @@ public class menu1Controller {
             if (cuentasNode.isArray()) {
                 for (JsonNode cuentaNode : cuentasNode) {
                     cuentaNode.fieldNames().forEachRemaining(cuenta -> {
-                        dropdownArg.getItems().add(cuenta);
+                        // Intentar descifrar el nombre de la clase
+                        String nombreClase = descifrarNombreClase(cuenta);
+                        dropdownArg.getItems().add(nombreClase);
                     });
                 }
             }
@@ -603,9 +650,7 @@ public class menu1Controller {
             }
         }
         return sb.toString();
-    }
-
-    //metodo para actualizar la contrasena en el JSON
+    }    //metodo para actualizar la contrasena en el JSON
     public void actualizarContraseña(ComboBox<String> primerDropdown, ComboBox<String> segundoDropdown,
             @SuppressWarnings("exports") TextField nuevoUsuario,
             @SuppressWarnings("exports") TextField nuevaContraseña) {
@@ -613,6 +658,10 @@ public class menu1Controller {
         String cuentaSeleccionada = segundoDropdown.getValue(); //coje el usuario del segundo dropdown
         String nuevoUsuarioTexto = nuevoUsuario.getText(); //coje el texto del usuario
         String nuevaContraseñaTexto = nuevaContraseña.getText(); //coje el texto de la passwd
+        
+        // Cifra los valores para buscarlos tanto cifrados como sin cifrar
+        String encryptedApartado = cifrarNombreClase(apartadoSeleccionado);
+        String encryptedCuenta = cifrarNombreCuenta(cuentaSeleccionada);
 
         // buscar cuenta en archivo y actualizarla
         File file = new File(rutaTemp);
@@ -626,21 +675,42 @@ public class menu1Controller {
             if (cuentasNode.isArray()) {
                 for (JsonNode cuentaNode : cuentasNode) {
                     //hace un bucle buscando los nodos, si algun nodo coincide con el seleccionado en el primer dropdown entra
-                    if (cuentaNode.has(apartadoSeleccionado)) {
-                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(apartadoSeleccionado);
+                    boolean hasEncryptedClass = cuentaNode.has(encryptedApartado);
+                    boolean hasPlainClass = cuentaNode.has(apartadoSeleccionado);
+                    
+                    if (hasEncryptedClass || hasPlainClass) {
+                        // Determinar qué clave usar
+                        String classKey = hasEncryptedClass ? encryptedApartado : apartadoSeleccionado;
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(classKey);
+                        
                         //bucle para recorrer dentro del apartado seleccionado en el pirmer dropdown
                         for (JsonNode cuenta : cuentasArray) {
-                            if (cuenta.has(cuentaSeleccionada)) {//si tiene la cuenta seleccionada recoje el texto
+                            boolean hasEncryptedAccount = cuenta.has(encryptedCuenta);
+                            boolean hasPlainAccount = cuenta.has(cuentaSeleccionada);
+                            
+                            if (hasEncryptedAccount || hasPlainAccount) {//si tiene la cuenta seleccionada recoje el texto
                                 ObjectNode cuentaObject = (ObjectNode) cuenta;
+                                String accountKey = hasEncryptedAccount ? encryptedCuenta : cuentaSeleccionada;
                                 String usuarioActual = cuentaSeleccionada;
-                                String contrasenaActual = cuentaObject.get(cuentaSeleccionada).asText();
-
+                                String contrasenaActual = cuentaObject.get(accountKey).asText();
+                                
                                 // Actualizar usuario y contraseña
                                 String usuarioFinal = nuevoUsuarioTexto.isEmpty() ? usuarioActual : nuevoUsuarioTexto;
-                                String contrasenaFinal = nuevaContraseñaTexto.isEmpty() ? contrasenaActual : nuevaContraseñaTexto;
+                                
+                                // Cifrar el nuevo nombre de usuario
+                                String encryptedUsuarioFinal = cifrarNombreCuenta(usuarioFinal);
+                                
+                                // Descifrar la contraseña actual para verificar si necesitamos actualizarla
+                                String contrasenaDescifrada = descifrarPassword(contrasenaActual);
+                                
+                                // Si hay nueva contraseña, actualizarla y cifrarla
+                                String contrasenaFinal = nuevaContraseñaTexto.isEmpty() ? contrasenaDescifrada : nuevaContraseñaTexto;
+                                
+                                // Cifrar la contraseña final antes de guardarla
+                                String contrasenaFinalCifrada = cifrarPassword(contrasenaFinal);
 
-                                cuentaObject.remove(cuentaSeleccionada);
-                                cuentaObject.put(usuarioFinal, contrasenaFinal);
+                                cuentaObject.remove(accountKey);
+                                cuentaObject.put(encryptedUsuarioFinal, contrasenaFinalCifrada);
                                 break;
                             }
                         }
@@ -660,9 +730,7 @@ public class menu1Controller {
         } catch (IOException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al actualizar la contraseña: " + e.getMessage());
         }
-    }
-
-    // metodo para mostrar las contrasenas en el scroll pane central cuando se pulsa en mostrar (JSON)
+    }// metodo para mostrar las contrasenas en el scroll pane central cuando se pulsa en mostrar (JSON)
     public void mostrarContrasenas(ComboBox<String> dropdownString) {
         // Configurar el comportamiento del desplazamiento del ScrollPane
         scrollpane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
@@ -686,6 +754,9 @@ public class menu1Controller {
             mostrarAlerta(Alert.AlertType.INFORMATION, "Información", "Por favor, selecciona una clase primero");
             return;
         }
+        
+        // Cifrar el nombre de clase seleccionado para buscar tanto por valor cifrado como sin cifrar
+        String encryptedOpcionMostrar = cifrarNombreClase(opcionMostrar);
 
         // Desactivar el desplazamiento horizontal de manera explícita (aplicar SIEMPRE al principio)
         scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -753,9 +824,13 @@ public class menu1Controller {
 
             if (cuentasNode.isArray()) {
                 for (JsonNode cuentaNode : cuentasNode) {
-                    if (cuentaNode.has(opcionMostrar)) {
+                    // Buscar tanto por nombre cifrado como por nombre sin cifrar
+                    if (cuentaNode.has(opcionMostrar) || cuentaNode.has(encryptedOpcionMostrar)) {
                         encontrado = true;
-                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(opcionMostrar);
+                        
+                        // Determinar qué clave usar
+                        String classKey = cuentaNode.has(encryptedOpcionMostrar) ? encryptedOpcionMostrar : opcionMostrar;
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(classKey);
                         
                         // Si no hay cuentas, mostrar un mensaje
                         if (cuentasArray.size() == 0) {
@@ -766,11 +841,15 @@ public class menu1Controller {
                         
                         // Contador para animación escalonada
                         final int[] contador = {0};
-                        
                         for (JsonNode cuenta : cuentasArray) {
                             cuenta.fields().forEachRemaining(entry -> {
-                                String usuario = entry.getKey();
-                                String contrasena = entry.getValue().asText();
+                                // Descifrar el nombre de usuario y la contraseña
+                                String encryptedUserName = entry.getKey();
+                                String usuario = descifrarNombreCuenta(encryptedUserName);
+                                
+                                // Descifrar la contraseña antes de mostrarla
+                                String contrasenaEncriptada = entry.getValue().asText();
+                                String contrasena = descifrarPassword(contrasenaEncriptada);
                                 
                                 // Crear un ítem de cuenta con efecto de tarjeta
                                 VBox itemCuenta = new VBox();
@@ -866,7 +945,7 @@ public class menu1Controller {
                                             fadeOut.setFromValue(1.0);
                                             fadeOut.setToValue(0.0);
                                             fadeOut.setOnFinished(e -> {
-                                                borrarCuentas(opcionMostrar, usuario);
+                                                borrarCuentas(classKey, encryptedUserName);
                                                 mostrarContrasenas(dropdownString);
                                             });
                                             fadeOut.play();
@@ -912,9 +991,7 @@ public class menu1Controller {
         } catch (IOException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al mostrar las contraseñas: " + e.getMessage());
         }
-    }
-
-    //metodo para cargar las cuentas y contrasenas en el dropdown de actualizar contrasenas
+    }//metodo para cargar las cuentas y contrasenas en el dropdown de actualizar contrasenas
     private void cargarItemsEnDropdownMinusculas(ComboBox<String> segundoDropdown, ComboBox<String> primerDropdown) {
         segundoDropdown.getItems().clear();
 
@@ -928,13 +1005,25 @@ public class menu1Controller {
 
             JsonNode rootNode = objectMapper.readTree(file);
             JsonNode cuentasNode = rootNode.path("cuentas");
+            
+            // Obtiene el valor seleccionado y lo cifra para buscar
+            String selectedClass = primerDropdown.getValue();
+            String encryptedSelectedClass = cifrarNombreClase(selectedClass);
 
             if (cuentasNode.isArray()) {
                 for (JsonNode cuentaNode : cuentasNode) {
-                    if (cuentaNode.has(primerDropdown.getValue())) {
-                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(primerDropdown.getValue());
+                    // Buscar tanto por el nombre de clase cifrado como sin cifrar
+                    if (cuentaNode.has(selectedClass) || cuentaNode.has(encryptedSelectedClass)) {
+                        // Determinar qué clave usar
+                        String classKey = cuentaNode.has(encryptedSelectedClass) ? encryptedSelectedClass : selectedClass;
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(classKey);
+                        
                         for (JsonNode cuenta : cuentasArray) {
-                            cuenta.fieldNames().forEachRemaining(segundoDropdown.getItems()::add);
+                            cuenta.fieldNames().forEachRemaining(encryptedAccount -> {
+                                // Descifrar el nombre de la cuenta para mostrarlo
+                                String accountName = descifrarNombreCuenta(encryptedAccount);
+                                segundoDropdown.getItems().add(accountName);
+                            });
                         }
                         break;
                     }
@@ -946,23 +1035,31 @@ public class menu1Controller {
         } catch (IOException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al cargar los items: " + e.getMessage());
         }
-    }
-
-    // borrar cuentas de JSON
+    }    // borrar cuentas de JSON
     private void borrarCuentas(String clase, String cuenta) {
         File file = new File(rutaTemp);
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(file);
             JsonNode cuentasNode = rootNode.path("cuentas");
+            
+            // La clase y cuenta pueden ya estar cifradas o no, así que intentamos con ambos valores
+            String encryptedClase = descifrarNombreClase(clase) != clase ? clase : cifrarNombreClase(clase);
+            String encryptedCuenta = descifrarNombreCuenta(cuenta) != cuenta ? cuenta : cifrarNombreCuenta(cuenta);
 
             if (cuentasNode.isArray()) {
                 for (JsonNode cuentaNode : cuentasNode) {
-                    if (cuentaNode.has(clase)) {
-                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(clase);
+                    // Buscar tanto por nombre cifrado como por nombre sin cifrar
+                    boolean hasPlainClass = cuentaNode.has(clase);
+                    boolean hasEncryptedClass = cuentaNode.has(encryptedClase);
+                    
+                    if (hasPlainClass || hasEncryptedClass) {
+                        String classKey = hasPlainClass ? clase : encryptedClase;
+                        ArrayNode cuentasArray = (ArrayNode) cuentaNode.get(classKey);
                         for (int i = 0; i < cuentasArray.size(); i++) {
                             JsonNode cuentaJson = cuentasArray.get(i);
-                            if (cuentaJson.has(cuenta)) {
+                            // Buscar tanto por nombre cifrado como por nombre sin cifrar
+                            if (cuentaJson.has(cuenta) || cuentaJson.has(encryptedCuenta)) {
                                 cuentasArray.remove(i);
                                 break;
                             }
@@ -980,9 +1077,7 @@ public class menu1Controller {
         } catch (IOException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "Error al borrar la cuenta: " + e.getMessage());
         }
-    }
-
-    //boton borrar clases JSON
+    }    //boton borrar clases JSON
     private void borrarClases() {
         String claseSeleccionada = dropdown.getValue(); // Obtener la clase seleccionada del dropdown
 
@@ -990,6 +1085,9 @@ public class menu1Controller {
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "No hay clase seleccionada. Por favor, selecciona una clase para borrar.");
             return;
         }
+        
+        // Cifrar la clase seleccionada para buscar por el valor cifrado
+        String encryptedClaseSeleccionada = cifrarNombreClase(claseSeleccionada);
 
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Confirmación de eliminación");
@@ -1012,7 +1110,8 @@ public class menu1Controller {
                     if (cuentasNode.isArray()) {
                         for (int i = 0; i < cuentasNode.size(); i++) {
                             JsonNode cuentaNode = cuentasNode.get(i);
-                            if (cuentaNode.has(claseSeleccionada)) {
+                            // Buscar tanto por nombre cifrado como por nombre sin cifrar
+                            if (cuentaNode.has(claseSeleccionada) || cuentaNode.has(encryptedClaseSeleccionada)) {
                                 ((ArrayNode) cuentasNode).remove(i);
                                 break;
                             }
@@ -1067,7 +1166,112 @@ public class menu1Controller {
         }
         
         return new String(passwordArray);
+    }    /**
+     * Cifra una contraseña usando la contraseña maestra del usuario
+     * 
+     * @param password Contraseña a cifrar
+     * @return Contraseña cifrada
+     */
+    private String cifrarPassword(String password) {
+        String masterPassword = com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword();
+        if (masterPassword == null || masterPassword.isEmpty()) {
+            System.err.println("Error: No hay contraseña maestra disponible para cifrar");
+            return password; // Si no hay contraseña maestra, devolver la contraseña original
+        }
+        return com.sentinel.sentinel_pm.config.CryptoUtils.encryptReversible(password, masterPassword);
     }
-
+    
+    /**
+     * Descifra una contraseña usando la contraseña maestra del usuario
+     * 
+     * @param encryptedPassword Contraseña cifrada
+     * @return Contraseña descifrada
+     */
+    private String descifrarPassword(String encryptedPassword) {
+        // Verificar si la contraseña parece estar cifrada (verificación básica)
+        if (encryptedPassword == null || !encryptedPassword.matches("^[A-Za-z0-9+/=]+$")) {
+            return encryptedPassword; // No está cifrada o es inválida
+        }
+        
+        String masterPassword = com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword();
+        if (masterPassword == null || masterPassword.isEmpty()) {
+            System.err.println("Error: No hay contraseña maestra disponible para descifrar");
+            return encryptedPassword; // Si no hay contraseña maestra, devolver la contraseña cifrada
+        }
+        
+        return com.sentinel.sentinel_pm.config.CryptoUtils.decryptReversible(encryptedPassword, masterPassword);
+    }
+    
+    /**
+     * Cifra un nombre de clase usando la contraseña maestra del usuario
+     * 
+     * @param className Nombre de clase a cifrar
+     * @return Nombre de clase cifrado
+     */
+    private String cifrarNombreClase(String className) {
+        String masterPassword = com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword();
+        if (masterPassword == null || masterPassword.isEmpty()) {
+            System.err.println("Error: No hay contraseña maestra disponible para cifrar");
+            return className; // Si no hay contraseña maestra, devolver el nombre original
+        }
+        return com.sentinel.sentinel_pm.config.CryptoUtils.encryptReversible(className, masterPassword);
+    }
+    
+    /**
+     * Descifra un nombre de clase usando la contraseña maestra del usuario
+     * 
+     * @param encryptedClassName Nombre de clase cifrado
+     * @return Nombre de clase descifrado
+     */
+    private String descifrarNombreClase(String encryptedClassName) {
+        // Verificar si el nombre parece estar cifrado (verificación básica)
+        if (encryptedClassName == null || !encryptedClassName.matches("^[A-Za-z0-9+/=]+$")) {
+            return encryptedClassName; // No está cifrado o es inválido
+        }
+        
+        String masterPassword = com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword();
+        if (masterPassword == null || masterPassword.isEmpty()) {
+            System.err.println("Error: No hay contraseña maestra disponible para descifrar");
+            return encryptedClassName; // Si no hay contraseña maestra, devolver el nombre cifrado
+        }
+        
+        return com.sentinel.sentinel_pm.config.CryptoUtils.decryptReversible(encryptedClassName, masterPassword);
+    }
+    
+    /**
+     * Cifra un nombre de cuenta usando la contraseña maestra del usuario
+     * 
+     * @param accountName Nombre de cuenta a cifrar
+     * @return Nombre de cuenta cifrado
+     */
+    private String cifrarNombreCuenta(String accountName) {
+        String masterPassword = com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword();
+        if (masterPassword == null || masterPassword.isEmpty()) {
+            System.err.println("Error: No hay contraseña maestra disponible para cifrar");
+            return accountName; // Si no hay contraseña maestra, devolver el nombre original
+        }
+        return com.sentinel.sentinel_pm.config.CryptoUtils.encryptReversible(accountName, masterPassword);
+    }
+    
+    /**
+     * Descifra un nombre de cuenta usando la contraseña maestra del usuario
+     * 
+     * @param encryptedAccountName Nombre de cuenta cifrado
+     * @return Nombre de cuenta descifrado
+     */
+    private String descifrarNombreCuenta(String encryptedAccountName) {
+        // Verificar si el nombre parece estar cifrado (verificación básica)
+        if (encryptedAccountName == null || !encryptedAccountName.matches("^[A-Za-z0-9+/=]+$")) {
+            return encryptedAccountName; // No está cifrado o es inválido
+        }
+        
+        String masterPassword = com.sentinel.sentinel_pm.config.PasswordManager.getMasterPassword();
+        if (masterPassword == null || masterPassword.isEmpty()) {
+            System.err.println("Error: No hay contraseña maestra disponible para descifrar");
+            return encryptedAccountName; // Si no hay contraseña maestra, devolver el nombre cifrado
+        }
+        
+        return com.sentinel.sentinel_pm.config.CryptoUtils.decryptReversible(encryptedAccountName, masterPassword);
+    }
     //=============================== FIN METODOS=========================================================================//
 }

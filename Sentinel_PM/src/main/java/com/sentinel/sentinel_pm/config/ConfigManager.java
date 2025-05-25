@@ -89,8 +89,7 @@ public class ConfigManager {
             return CONFIG_BACKUP_FILENAME;
         }
     }
-    
-    /**
+      /**
      * Guarda la configuración en un archivo JSON
      * 
      * @param password La contraseña para proteger la aplicación
@@ -115,8 +114,9 @@ public class ConfigManager {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode rootNode = mapper.createObjectNode();
             
-            // Guardar la ruta en texto plano
-            rootNode.put("ruta", rutaArchivo);
+            // Cifrar la ruta con un método reversible basado en la contraseña del usuario
+            String encryptedRuta = CryptoUtils.encryptReversible(rutaArchivo, password);
+            rootNode.put("ruta", encryptedRuta);
             
             // Hashear la contraseña antes de guardarla (nunca guardar contraseñas en texto plano)
             String hashedPassword = hashPassword(password);
@@ -202,8 +202,7 @@ public class ConfigManager {
             return null;
         }
     }
-    
-    /**
+      /**
      * Carga la configuración desde una ruta específica
      */
     private static passRuta cargarConfiguracionDesdeArchivo(String filePath) {
@@ -252,11 +251,10 @@ public class ConfigManager {
             return false;
         }
     }
-    
-    /**
+      /**
      * Obtiene la ruta guardada en la configuración
      * 
-     * @return La ruta o una cadena vacía si hay error
+     * @return La ruta descifrada o una cadena vacía si hay error
      */
     public static String obtenerRuta() {
         try {
@@ -265,7 +263,20 @@ public class ConfigManager {
                 return "";
             }
             
-            return config.getRuta();
+            String rutaCifrada = config.getRuta();
+            
+            // Intentar detectar si la ruta ya está cifrada antes de intentar descifrarla
+            // Si parece Base64 (probablemente cifrada), intentamos descifrarla
+            if (rutaCifrada != null && rutaCifrada.matches("^[A-Za-z0-9+/=]+$")) {
+                // Para descifrarla necesitamos la contraseña del usuario
+                // Como no podemos pedir la contraseña aquí, usamos una solución alternativa:
+                // Desciframos con la contraseña cifrada como clave (ya que la tenemos disponible)
+                String passwordHash = config.getPasswd();
+                return CryptoUtils.decryptReversible(rutaCifrada, passwordHash);
+            } else {
+                // Si no parece Base64, probablemente es una ruta en texto plano (para compatibilidad)
+                return rutaCifrada;
+            }
             
         } catch (Exception e) {
             System.err.println("Error al obtener ruta: " + e.getMessage());
@@ -295,6 +306,35 @@ public class ConfigManager {
         } catch (NoSuchAlgorithmException e) {
             System.err.println("Error al hashear contraseña: " + e.getMessage());
             return password; // En caso de error, usar la contraseña sin hashear (no es lo ideal)
+        }
+    }
+    
+    /**
+     * Obtiene la ruta guardada en la configuración usando la contraseña del usuario para descifrarla
+     * 
+     * @param userPassword La contraseña ingresada por el usuario
+     * @return La ruta descifrada o una cadena vacía si hay error
+     */
+    public static String obtenerRutaConPassword(String userPassword) {
+        try {
+            passRuta config = cargarConfiguracion();
+            if (config == null) {
+                return "";
+            }
+            
+            String rutaCifrada = config.getRuta();
+            
+            // Intentar detectar si la ruta ya está cifrada antes de intentar descifrarla
+            if (rutaCifrada != null && rutaCifrada.matches("^[A-Za-z0-9+/=]+$")) {
+                return CryptoUtils.decryptReversible(rutaCifrada, userPassword);
+            } else {
+                // Si no parece Base64, probablemente es una ruta en texto plano (para compatibilidad)
+                return rutaCifrada;
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error al obtener ruta con contraseña: " + e.getMessage());
+            return "";
         }
     }
     
